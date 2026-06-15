@@ -5,7 +5,7 @@ class Config(BaseSettings):
 
   model_config = SettingsConfigDict(
     env_file=".env",
-    extra=False,
+    extra="ignore",
     case_sensitive=True
   )
 
