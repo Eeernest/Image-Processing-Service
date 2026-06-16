@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 
 from pydantic import BaseModel, EmailStr, field_validator
@@ -31,3 +32,6 @@ class AccountCreate(AccountBase):
       raise PasswordNumberException()
     
     return v
+  
+class AccountRead(AccountBase):
+  id: int
