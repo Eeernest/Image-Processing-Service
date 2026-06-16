@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: .
-      POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/db
+      POSTGRES_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/db
 
     steps:
       - uses: actions/checkout@v4
