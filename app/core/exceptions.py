@@ -1,0 +1,23 @@
+class AppBaseException(Exception):
+  status_code = 500
+  detail = "An error occured"
+
+class PasswordTooShortException(AppBaseException):
+  status_code = 422
+  detail = "Password should have at least 8 characters"
+
+class PasswordNoUppercaseException(AppBaseException):
+  status_code = 422
+  detail = "Password should have at least one big letter"
+
+class PasswordNumberException(AppBaseException):
+  status_code = 422
+  detail = "Password should have at least one number"
+
+class UsernameUnavailableException(AppBaseException):
+  status_code = 409
+  detail = "Username is alraedy in use"
+
+class EmailUnavailableException(AppBaseException):
+  status_code = 409
+  detail = "Email is already in use"
