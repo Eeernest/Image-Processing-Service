@@ -1,7 +1,11 @@
 from unittest.mock import AsyncMock
 
+from httpx import AsyncClient, ASGITransport
 import pytest
 
+from app.core.security import Security
+from app.dependencies.account_dependency import get_account_service
+from app.main import app
 from app.models.account_model import Account
 from app.repositories.account_repository import AccountDbRepository
 from app.schemas.account_schema import AccountCreate
@@ -43,3 +47,40 @@ def account_data():
     email="user1@example.com",
     password="Password123"
   )
+
+@pytest.fixture()
+def mock_service():
+  return AsyncMock()
+
+@pytest.fixture()
+async def unit_client(mock_service):
+  app.dependency_overrides[get_account_service] = lambda: mock_service
+
+  async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+    yield c
+
+  app.dependency_overrides.clear()
+
+@pytest.fixture()
+def account_payload():
+  return {
+    "username": "user1",
+    "email": "user1@example.com",
+    "password": "Password123"
+  }
+
+@pytest.fixture()
+def integration_service(db_session):
+  security = Security()
+  db_repo = AccountDbRepository(db_session)
+
+  return AccountService(security, db_repo)
+
+@pytest.fixture()
+async def integration_client(integration_service):
+  app.dependency_overrides[get_account_service] = lambda: integration_service
+
+  async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+    yield c
+
+  app.dependency_overrides.clear()
