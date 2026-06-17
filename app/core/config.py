@@ -15,7 +15,7 @@ class Config(BaseSettings):
 
   ALGORITHM: str = "algorithm"
 
-  ACCESS_TOKEN_EXPIRE_MINUTES: int = "access_token_expire_minutes"
+  ACCESS_TOKEN_EXPIRE_MINUTES: int = 0
 
   model_config = SettingsConfigDict(
     env_file=".env",
