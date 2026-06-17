@@ -9,6 +9,14 @@ class Config(BaseSettings):
 
   ADMIN_HASHED_PASSWORD: str = "admin_hashed_password"
 
+  DUMMY_HASH: str = "dummy_hash"
+
+  SECRET_KEY: str = "secret_key"
+
+  ALGORITHM: str = "algorithm"
+
+  ACCESS_TOKEN_EXPIRE_MINUTES: int = "access_token_expire_minutes"
+
   model_config = SettingsConfigDict(
     env_file=".env",
     extra="ignore",
