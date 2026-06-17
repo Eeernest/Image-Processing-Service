@@ -7,7 +7,7 @@ from app.core.security import Security
 from app.dependencies.account_dependency import get_account_service
 from app.main import app
 from app.models.account_model import Account
-from app.repositories.account_repository import AccountDbRepository
+from app.repositories.account_db_repository import AccountDbRepository
 from app.schemas.account_schema import AccountCreate
 from app.services.account_service import AccountService
 from tests.conftest import db_session

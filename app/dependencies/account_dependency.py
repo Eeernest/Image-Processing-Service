@@ -4,7 +4,7 @@ from fastapi import Depends
 
 from app.core.security import Security
 from app.db.database import SessionDep
-from app.repositories.account_repository import AccountDbRepository
+from app.repositories.account_db_repository import AccountDbRepository
 from app.services.account_service import AccountService
 
 def get_account_service(session: SessionDep):

@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from app.core.exceptions import AppBaseException, UsernameUnavailableException, EmailUnavailableException
 from app.core.security import Security
 from app.models.account_model import Account
-from app.repositories.account_repository import AccountDbRepository
+from app.repositories.account_db_repository import AccountDbRepository
 from app.schemas.account_schema import AccountCreate
 
 class AccountService:
