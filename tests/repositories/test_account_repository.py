@@ -28,3 +28,10 @@ async def test_get_by_email_success(db_repo, saved_account_obj):
   result = await db_repo.get_by_email(saved_account_obj.email)
 
   assert result.email == saved_account_obj.email
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_get_by_id(db_repo, saved_account_obj):
+  result = await db_repo.get_by_id(saved_account_obj.id)
+
+  assert result == saved_account_obj
