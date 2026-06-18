@@ -7,6 +7,9 @@ Image processing service REST API built with Python and FastAPI
 ### Registration
 - User can create account
 
+### Login
+- User can login after creating account
+
 ## Instalation
 1. Clone the repository:
 
