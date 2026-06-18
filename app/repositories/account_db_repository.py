@@ -29,3 +29,8 @@ class AccountDbRepository:
     result = await self.session.execute(select(Account).where(Account.email == email))
 
     return result.scalar_one_or_none()
+  
+  async def get_by_id(self, id: int) -> Account | None:
+    result = await self.session.execute(select(Account).where(Account.id == id))
+
+    return result.scalar_one_or_none()
