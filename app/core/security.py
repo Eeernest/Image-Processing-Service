@@ -1,6 +1,9 @@
 from fastapi.concurrency import run_in_threadpool
+from fastapi.security import OAuth2PasswordBearer
 import jwt
 from pwdlib import PasswordHash
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class Security:
   def __init__(self):
