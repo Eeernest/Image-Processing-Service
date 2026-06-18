@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 from httpx import AsyncClient, ASGITransport
 import pytest
@@ -12,7 +12,10 @@ from tests.conftest import db_session
 
 @pytest.fixture()
 def mock_security():
-  return AsyncMock()
+  mock = AsyncMock()
+  mock.encode_jwt = Mock()
+
+  return mock
 
 @pytest.fixture()
 def mock_db_repo():
