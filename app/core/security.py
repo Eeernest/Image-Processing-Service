@@ -14,3 +14,6 @@ class Security:
   
   def encode_jwt(self, to_encode: dict, secret_key: str, algorithm: str) -> str:
     return jwt.encode(to_encode, secret_key, algorithm)
+  
+  def decode_jwt(self, token: str, secret_key: str, algorithm: str) -> dict:
+    return jwt.decode(token, secret_key, algorithm)
