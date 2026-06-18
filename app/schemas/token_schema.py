@@ -6,3 +6,7 @@ class TokenBase(BaseModel):
 
 class TokenRead(TokenBase):
   pass
+
+class TokenData(BaseModel):
+  account_id: int
+  user_role: str
