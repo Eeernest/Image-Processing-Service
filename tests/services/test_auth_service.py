@@ -17,7 +17,7 @@ async def test_login_success(mock_security, mock_db_repo, service, account_obj):
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_login_username_failure(mock_security, mock_db_repo, service, account_obj):
+async def test_login_username_failure(mock_security, mock_db_repo, service):
   mock_db_repo.get_by_username.return_value = None
   mock_security.verify_password.return_value = False
 
