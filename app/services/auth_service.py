@@ -27,7 +27,7 @@ class AuthService:
     
     return account_obj
   
-  async def _create_access_token(self, data: dict, expires_delta: timedelta | None = None) -> str:
+  def _create_access_token(self, data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
 
     if expires_delta is not None:
@@ -38,7 +38,7 @@ class AuthService:
 
     to_encode.update({"exp": expire})
 
-    encoded_jwt = await self.security.encode_jwt(
+    encoded_jwt = self.security.encode_jwt(
       to_encode=to_encode,
       secret_key=settings.SECRET_KEY,
       algorithm=settings.ALGORITHM
@@ -54,7 +54,7 @@ class AuthService:
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    access_token = await self._create_access_token(
+    access_token = self._create_access_token(
       data={"sub": str(account_obj.id), "role": account_obj.user_role},
       expires_delta=access_token_expires
     )
