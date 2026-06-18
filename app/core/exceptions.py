@@ -25,3 +25,15 @@ class EmailUnavailableException(AppBaseException):
 class InvalidCredentialsException(AppBaseException):
   status_code = 401
   detail = "Incorrect username or password"
+
+class InvalidTokenException(AppBaseException):
+  status_code = 401
+  detail = "Could not validate credentials"
+
+class InactiveAccountException(AppBaseException):
+  status_code = 400
+  detail = "Account is inactive"
+
+class DeletedAccountException(AppBaseException):
+  status_code = 400
+  detail = "Account is deleted"
