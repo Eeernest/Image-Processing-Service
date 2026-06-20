@@ -21,7 +21,7 @@ cd Image-Processing-Service
 2. Creae virtual environment:
 
 ```bash
-python -m venv venv
+python -m venv .venv
 source venv\bin\activate # Linux/macOS
 venv\Scripts\activate    # Windows
 ```
