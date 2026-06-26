@@ -23,7 +23,7 @@ cd Image-Processing-Service
 ```bash
 python -m venv .venv
 source venv\bin\activate # Linux/macOS
-venv\Scripts\activate    # Windows
+.venv\Scripts\activate    # Windows
 ```
 
 3. Create an .env file in the project root:
