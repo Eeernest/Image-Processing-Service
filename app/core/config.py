@@ -25,6 +25,8 @@ class Config(BaseSettings):
 
   S3_SECRET_ACCESS_KEY: str = "s3-secret_access_key"
 
+  S3_ENDPOINT_URL: str | None = None
+
   model_config = SettingsConfigDict(
     env_file=".env",
     extra="ignore",
