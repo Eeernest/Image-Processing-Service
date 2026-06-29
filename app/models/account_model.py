@@ -23,4 +23,4 @@ class Account(Base):
   created_at = Column(DateTime, default=datetime.utcnow)
   updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-  user_images = relationship("UserImage", back_populates="account", cascade="all, delete-orphan")
+  user_images = relationship("Image", back_populates="account", cascade="all, delete-orphan")

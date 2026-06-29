@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 from app.db.database import Base
 
-class UserImage(Base):
+class Image(Base):
   __tablename__ = "user_images"
 
   id = Column(Integer, primary_key=True, index=True)
