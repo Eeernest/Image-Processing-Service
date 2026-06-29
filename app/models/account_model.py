@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
 
 from app.db.database import Base
 
@@ -21,3 +22,5 @@ class Account(Base):
   is_deleted = Column(Boolean, default=False)
   created_at = Column(DateTime, default=datetime.utcnow)
   updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  user_images = relationship("UserImage", back_populates="account", cascade="all, delete-orphan")
