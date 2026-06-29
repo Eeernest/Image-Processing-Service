@@ -1,9 +1,26 @@
+import os
+
+os.environ["S3_BUCKET_NAME"] = "test-bucket"
+os.environ["SECRET_KEY"] = "test-secret-key"
+
+os.environ["S3_ACCESS_KEY_ID"] = "testing"
+os.environ["S3_SECRET_ACCESS_KEY"] = "testing"
+os.environ["S3_REGION"] = "eu-north-1"
+
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+os.environ["AWS_DEFAULT_REGION"] = "eu-north-1"
+
+import boto3
+from moto import mock_aws
 import pytest
 from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from testcontainers.postgres import PostgresContainer
 
 from app.db.database import Base
+
+pytest_plugins = ["anyio"]
 
 @pytest.fixture(scope="session")
 def anyio_backend():
@@ -56,3 +73,12 @@ async def db_session(test_engine, setup_database):
       await session.close()
       await trans.rollback()
       await conn.close()
+
+@pytest.fixture()
+def mocked_aws():
+  with mock_aws():
+    region = "eu-north-1"
+    s3 = boto3.client("s3", region_name=region)
+
+    s3.create_bucket(Bucket=os.environ["S3_BUCKET_NAME"], CreateBucketConfiguration={"LocationConstraint": region})
+    yield s3
