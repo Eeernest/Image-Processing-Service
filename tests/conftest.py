@@ -20,7 +20,7 @@ from testcontainers.postgres import PostgresContainer
 
 from app.db.database import Base
 from app.models.account_model import Account
-from app.models.image_model import UserImage
+from app.models.image_model import Image
 
 pytest_plugins = ["anyio"]
 
