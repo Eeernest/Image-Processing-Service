@@ -27,7 +27,8 @@ dependencies = [
   "pyjwt>=2.13.0",
   "python-multipart",
   "boto3>=1.43.36",
-  "types-boto3-s3>=1.43.31"
+  "types-boto3-s3>=1.43.31",
+  "moto[s3]>=5.2.2"
 ]
 
 [project.optional-dependencies]
