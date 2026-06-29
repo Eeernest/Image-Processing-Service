@@ -19,6 +19,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from testcontainers.postgres import PostgresContainer
 
 from app.db.database import Base
+from app.models.account_model import Account
+from app.models.image_model import UserImage
 
 pytest_plugins = ["anyio"]
 

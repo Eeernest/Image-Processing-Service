@@ -28,11 +28,12 @@ dependencies = [
   "python-multipart",
   "boto3>=1.43.36",
   "types-boto3-s3>=1.43.31",
-  "moto[s3]>=5.2.2"
+  "moto[s3]>=5.2.2",
+  "Pillow>=12.2.0"
 ]
 
 [project.optional-dependencies]
-
+     
 test = [
   "pytest>=9.0.2",
   "testcontainers>=4.14.2",
