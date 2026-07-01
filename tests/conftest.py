@@ -22,7 +22,13 @@ from app.db.database import Base
 from app.models.account_model import Account
 from app.models.image_model import Image
 
-pytest_plugins = ["anyio"]
+pytest_plugins = [
+  "anyio",
+  "tests.fixtures.account_fixture",
+  "tests.fixtures.auth_fixture",
+  "tests.fixtures.permit_fixture",
+  "tests.fixtures.image_fixture",
+]
 
 @pytest.fixture(scope="session")
 def anyio_backend():
