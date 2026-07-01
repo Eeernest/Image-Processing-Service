@@ -49,3 +49,11 @@ class ImageResolutionException(AppBaseException):
 class InvalidImageFormatException(AppBaseException):
   status_code = 422
   detail = "Invalid image format. Allowed formats are: IMG, JPEG, WEBP"
+
+class S3UploadFailedException(AppBaseException):
+  status_code = 503
+  detail = "Failed to upload image to storage"
+
+class DuplicateImageException(AppBaseException):
+  status_code = 409
+  detail = "Image with the same key is already uploaded"
