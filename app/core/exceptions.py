@@ -37,3 +37,15 @@ class InactiveAccountException(AppBaseException):
 class DeletedAccountException(AppBaseException):
   status_code = 400
   detail = "Account is deleted"
+
+class MaxFileSizeExceededException(AppBaseException):
+  status_code = 413
+  detail = "File size is too large"
+
+class ImageResolutionException(AppBaseException):
+  status_code = 400
+  detail = "Image resolution is too large"
+
+class InvalidImageFormatException(AppBaseException):
+  status_code = 422
+  detail = "Invalid image format. Allowed formats are: IMG, JPEG, WEBP"
