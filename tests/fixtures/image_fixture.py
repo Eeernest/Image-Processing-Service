@@ -14,18 +14,20 @@ def file_bytes():
 
 @pytest.fixture()
 def key():
-  return "uploads/test_image/image.jpg"
+  return "account/1/images/test_image.jpeg"
 
 @pytest.fixture()
 def db_repo(db_session):
   return ImageDbRepository(db_session)
 
 @pytest.fixture()
-def image_obj():
+def image_obj(saved_account_obj):
+  account = saved_account_obj
+
   return Image(
-    account_id=1,
+    account_id=saved_account_obj.id,
     filename="test.jpg",
-    s3_key="accounts/1/images/test.jpg",
+    s3_key="account/1/images/test.jpeg",
     file_format="JPEG",
     file_size_bytes=102450
   )
