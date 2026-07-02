@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 class Image(Base):
-  __tablename__ = "user_images"
+  __tablename__ = "images"
 
   id = Column(Integer, primary_key=True, index=True)
   account_id = Column(Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True)
