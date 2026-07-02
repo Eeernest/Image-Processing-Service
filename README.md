@@ -10,7 +10,14 @@ Image processing service REST API built with Python and FastAPI
 ### Login
 - User can login after creating account
 
-## Instalation
+### Upload Image
+- Authentication is required
+- User can upload image
+- maximal resolution: 5000 x 5000 pixels
+- Maximal file size: 10MB
+- Allowed formats: JPEG, PNG, WEBP
+
+## Installation
 1. Clone the repository:
 
 ```bash
@@ -22,7 +29,7 @@ cd Image-Processing-Service
 
 ```bash
 python -m venv .venv
-source venv\bin\activate # Linux/macOS
+source .venv\bin\activate # Linux/macOS
 .venv\Scripts\activate    # Windows
 ```
 
