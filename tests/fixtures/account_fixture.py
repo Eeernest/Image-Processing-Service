@@ -10,10 +10,9 @@ from app.models.account_model import Account
 from app.repositories.account_db_repository import AccountDbRepository
 from app.schemas.account_schema import AccountCreate
 from app.services.account_service import AccountService
-from tests.conftest import db_session
 
 @pytest.fixture()
-def db_repo(db_session):
+def account_db_repo(db_session):
   return AccountDbRepository(db_session)
 
 @pytest.fixture()
@@ -25,20 +24,20 @@ def account_obj():
   )
 
 @pytest.fixture()
-async def saved_account_obj(db_repo, account_obj):
-  return await db_repo.save(account_obj)
+async def saved_account_obj(account_db_repo, account_obj):
+  return await account_db_repo.save(account_obj)
 
 @pytest.fixture()
-def mock_security():
+def mock_account_security():
   return AsyncMock()
 
 @pytest.fixture()
-def mock_db_repo():
+def mock_account_db_repo():
   return AsyncMock()
 
 @pytest.fixture()
-def service(mock_security, mock_db_repo):
-  return AccountService(mock_security, mock_db_repo)
+def account_service(mock_account_security, mock_account_db_repo):
+  return AccountService(mock_account_security, mock_account_db_repo)
 
 @pytest.fixture()
 def account_data():
@@ -49,12 +48,12 @@ def account_data():
   )
 
 @pytest.fixture()
-def mock_service():
+def mock_account_service():
   return AsyncMock()
 
 @pytest.fixture()
-async def unit_client(mock_service):
-  app.dependency_overrides[get_account_service] = lambda: mock_service
+async def unit_account_client(mock_account_service):
+  app.dependency_overrides[get_account_service] = lambda: mock_account_service
 
   async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
     yield c
@@ -70,15 +69,15 @@ def account_payload():
   }
 
 @pytest.fixture()
-def integration_service(db_session):
+def integration_account_service(db_session):
   security = Security()
   db_repo = AccountDbRepository(db_session)
 
   return AccountService(security, db_repo)
 
 @pytest.fixture()
-async def integration_client(integration_service):
-  app.dependency_overrides[get_account_service] = lambda: integration_service
+async def integration_account_client(integration_account_service):
+  app.dependency_overrides[get_account_service] = lambda: integration_account_service
 
   async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
     yield c

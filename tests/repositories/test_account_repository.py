@@ -1,12 +1,11 @@
 import pytest
 
 from app.models.account_model import AccountRole
-from tests.fixtures.account_fixture import db_repo, account_obj, saved_account_obj
 
 @pytest.mark.anyio
 @pytest.mark.integration
-async def test_save_succes(db_repo, account_obj):
-  result = await db_repo.save(account_obj)
+async def test_save_succes(account_db_repo, account_obj):
+  result = await account_db_repo.save(account_obj)
 
   assert result.id is not None
   assert result.username == account_obj.username
@@ -17,21 +16,21 @@ async def test_save_succes(db_repo, account_obj):
 
 @pytest.mark.anyio
 @pytest.mark.integration
-async def test_get_by_username_success(db_repo, saved_account_obj):
-  result = await db_repo.get_by_username(saved_account_obj.username)
+async def test_get_by_username_success(account_db_repo, saved_account_obj):
+  result = await account_db_repo.get_by_username(saved_account_obj.username)
 
   assert result.username == saved_account_obj.username
 
 @pytest.mark.anyio
 @pytest.mark.integration
-async def test_get_by_email_success(db_repo, saved_account_obj):
-  result = await db_repo.get_by_email(saved_account_obj.email)
+async def test_get_by_email_success(account_db_repo, saved_account_obj):
+  result = await account_db_repo.get_by_email(saved_account_obj.email)
 
   assert result.email == saved_account_obj.email
 
 @pytest.mark.anyio
 @pytest.mark.integration
-async def test_get_by_id(db_repo, saved_account_obj):
-  result = await db_repo.get_by_id(saved_account_obj.id)
+async def test_get_by_id(account_db_repo, saved_account_obj):
+  result = await account_db_repo.get_by_id(saved_account_obj.id)
 
   assert result == saved_account_obj

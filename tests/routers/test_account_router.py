@@ -1,29 +1,29 @@
+from httpx import AsyncClient
 import pytest
 
-from app.core.exceptions import UsernameUnavailableException, EmailUnavailableException, PasswordTooShortException
-from tests.fixtures.account_fixture import account_obj, mock_service, unit_client, account_payload, integration_service, integration_client
+from app.core.exceptions import UsernameUnavailableException, EmailUnavailableException
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_register_success(account_obj, mock_service, unit_client, account_payload):
+async def test_register_success(account_obj, mock_account_service, unit_account_client, account_payload):
   account_obj.id = 1
   
-  mock_service.create_account.return_value = account_obj
+  mock_account_service.create_account.return_value = account_obj
 
-  result = await unit_client.post("/register", json=account_payload)
+  result = await unit_account_client.post("/register", json=account_payload)
   data = result.json()
 
   assert result.status_code == 200
   assert data["username"] == account_obj.username
   assert data["email"] == account_obj.email
-  assert mock_service.create_account.call_count == 1
+  assert mock_account_service.create_account.call_count == 1
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_register_username_excepion(mock_service, unit_client, account_payload):
-  mock_service.create_account.side_effect = UsernameUnavailableException()
+async def test_register_username_excepion(mock_account_service, unit_account_client: AsyncClient, account_payload):
+  mock_account_service.create_account.side_effect = UsernameUnavailableException()
 
-  result = await unit_client.post("/register", json=account_payload)
+  result = await unit_account_client.post("/register", json=account_payload)
   data = result.json()
 
   assert result.status_code == 409
@@ -31,10 +31,10 @@ async def test_register_username_excepion(mock_service, unit_client, account_pay
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_register_email_exception(mock_service, unit_client, account_payload):
-  mock_service.create_account.side_effect = EmailUnavailableException
+async def test_register_email_exception(mock_account_service, unit_account_client: AsyncClient, account_payload):
+  mock_account_service.create_account.side_effect = EmailUnavailableException
 
-  result = await unit_client.post("/register", json=account_payload)
+  result = await unit_account_client.post("/register", json=account_payload)
   data = result.json()
 
   assert result.status_code == 409
@@ -42,8 +42,8 @@ async def test_register_email_exception(mock_service, unit_client, account_paylo
 
 @pytest.mark.anyio
 @pytest.mark.integration
-async def test_integration_register_success(account_obj, account_payload, integration_client):
-  result = await integration_client.post("/register", json=account_payload)
+async def test_integration_register_success(account_obj, account_payload, integration_account_client: AsyncClient):
+  result = await integration_account_client.post("/register", json=account_payload)
   data = result.json()
 
   assert result.status_code == 200
