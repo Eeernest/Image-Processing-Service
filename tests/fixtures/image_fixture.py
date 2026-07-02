@@ -11,7 +11,7 @@ from app.repositories.image_s3_repository import ImageS3Repository
 from app.services.image_service import ImageService
 
 @pytest.fixture()
-def s3_repo(mocked_aws):
+def image_s3_repo(mocked_aws):
   return ImageS3Repository(mocked_aws)
 
 @pytest.fixture()
@@ -23,7 +23,7 @@ def key():
   return "account/1/images/test_image.jpeg"
 
 @pytest.fixture()
-def db_repo(db_session):
+def image_db_repo(db_session):
   return ImageDbRepository(db_session)
 
 @pytest.fixture()
