@@ -8,25 +8,20 @@ from app.main import app
 from app.models.account_model import Account
 from app.schemas.token_schema import TokenBase
 from app.services.auth_service import AuthService
-from tests.conftest import db_session
 
 @pytest.fixture()
-def mock_security():
+def mock_auth_security():
   mock = AsyncMock()
   mock.encode_jwt = Mock()
 
   return mock
 
 @pytest.fixture()
-def mock_db_repo():
-  return AsyncMock()
+def auth_service(mock_auth_security, mock_account_db_repo):
+  return AuthService(mock_auth_security, mock_account_db_repo)
 
 @pytest.fixture()
-def service(mock_security, mock_db_repo):
-  return AuthService(mock_security, mock_db_repo)
-
-@pytest.fixture()
-def account_obj():
+def auth_account_obj():
   return Account(
     username="user1",
     email="user1@example.com",
@@ -34,12 +29,12 @@ def account_obj():
   )
 
 @pytest.fixture()
-def mock_service():
+def mock_auth_service():
   return AsyncMock()
 
 @pytest.fixture()
-async def unit_client(mock_service):
-  app.dependency_overrides[get_auth_service] = lambda: mock_service
+async def unit_auth_client(mock_auth_service):
+  app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
 
   async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
     yield c
@@ -47,7 +42,7 @@ async def unit_client(mock_service):
   app.dependency_overrides.clear()
 
 @pytest.fixture()
-def account_payload():
+def auth_account_payload():
   return {
     "username": "user1",
     "password": "Password123"

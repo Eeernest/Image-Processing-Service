@@ -1,14 +1,13 @@
 import pytest
 
 from app.core.exceptions import InvalidCredentialsException
-from tests.fixtures.auth_fixture import mock_service, unit_client, account_payload, token
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_login_success(mock_service, unit_client, account_payload, token):
-  mock_service.login.return_value = token
+async def test_login_success(mock_auth_service, unit_auth_client, auth_account_payload, token):
+  mock_auth_service.login.return_value = token
 
-  result = await unit_client.post("/token", data=account_payload)
+  result = await unit_auth_client.post("/token", data=auth_account_payload)
   data = result.json()
 
   assert result.status_code == 200
@@ -17,10 +16,10 @@ async def test_login_success(mock_service, unit_client, account_payload, token):
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_login_data_failure(mock_service, unit_client, account_payload):
-  mock_service.login.side_effect = InvalidCredentialsException()
+async def test_login_data_failure(mock_auth_service, unit_auth_client, auth_account_payload):
+  mock_auth_service.login.side_effect = InvalidCredentialsException()
 
-  result = await unit_client.post("/token", data=account_payload)
+  result = await unit_auth_client.post("/token", data=auth_account_payload)
   data = result.json()
 
   assert result.status_code == 401
