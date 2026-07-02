@@ -25,7 +25,7 @@ class ImageService:
 
     return file_size_bytes
 
-  def _validate_image(self, file_bytes: bytes) -> None:
+  def _validate_image(self, file_bytes: bytes) -> str:
     try:
       with PILImage.open(BytesIO(file_bytes)) as img:
         allowed_image_formats = ["PNG", "JPEG", "WEBP"]
@@ -40,6 +40,8 @@ class ImageService:
         if width > max_width or height > max_height:
           raise ImageResolutionException()
 
+        return img.format.upper()
+
     except UnidentifiedImageError:
       raise InvalidImageFormatException()
 
@@ -49,21 +51,22 @@ class ImageService:
     file_size_bytes = self._validate_file_size(file_bytes)
     content_type = file.content_type
 
-    self._validate_image(file_bytes)
+    detected_format = self._validate_image(file_bytes)
 
     generated_key = f"account/{account_id}/images/{filename}"
 
     try:
       await self.s3_repo.upload_to_s3(file_bytes, generated_key, content_type)
 
-    except (ClientError,BotoCoreError):
+    except (ClientError,BotoCoreError) as e:
       raise S3UploadFailedException()
 
     image_obj = Image(
       account_id=account_id,
       filename=filename,
       s3_key=generated_key,
-      file_size_bytes=file_size_bytes
+      file_size_bytes=file_size_bytes,
+      file_format=detected_format
     )
 
     try:
