@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,3 +20,8 @@ class ImageDbRepository:
       await self.session.rollback()
 
       raise exc
+
+  async def get_by_id(self, id: int) -> Image | None:
+    result = await self.session.execute(select(Image).where(Image.id == id))
+
+    return result.scalar_one_or_none()
