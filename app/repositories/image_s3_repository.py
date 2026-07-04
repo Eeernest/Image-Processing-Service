@@ -32,3 +32,19 @@ class ImageS3Repository:
     )
 
     return {"message": "Image deleted"}
+
+  async def download_from_s3(self, key: str) -> bytes:
+    buffer = BytesIO()
+
+    try:
+      await run_in_threadpool(
+        self.s3_client.download_fileobj,
+        settings.S3_BUCKET_NAME,
+        key,
+        buffer
+      )
+
+      return buffer.getvalue()
+
+    except (ClientError, BotoCoreError) as exc:
+      raise exc
