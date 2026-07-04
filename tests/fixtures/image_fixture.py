@@ -32,8 +32,6 @@ def image_db_repo(db_session):
 
 @pytest.fixture()
 def image_obj(saved_account_obj):
-  account = saved_account_obj
-
   return Image(
     account_id=saved_account_obj.id,
     filename="test.jpeg",
@@ -41,6 +39,10 @@ def image_obj(saved_account_obj):
     file_format="JPEG",
     file_size_bytes=102450
   )
+
+@pytest.fixture()
+async def saved_image_obj(image_db_repo, image_obj):
+  return await image_db_repo.save(image_obj)
 
 @pytest.fixture()
 def mock_image_db_repo():
