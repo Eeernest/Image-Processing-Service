@@ -57,3 +57,7 @@ class S3UploadFailedException(AppBaseException):
 class DuplicateImageException(AppBaseException):
   status_code = 409
   detail = "Image with the same key is already uploaded"
+
+class ImageNotFoundException(AppBaseException):
+  status_code = 404
+  detail = "Image not found"
