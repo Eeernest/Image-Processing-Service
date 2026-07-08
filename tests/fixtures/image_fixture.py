@@ -67,6 +67,8 @@ def mock_file():
   file.filename = "test.jpeg"
   file.content_type = "image/jpeg"
   file.read.return_value = real_image_bytes
+  file.size = len(real_image_bytes)
+  file.file = BytesIO(real_image_bytes)
 
   return file
 
@@ -81,6 +83,8 @@ def mock_invalid_file():
   file.filename = "test.jpeg"
   file.content_type = "image/jpeg"
   file.read.return_value = real_image_bytes
+  file.size = len(real_image_bytes)
+  file.file = BytesIO(real_image_bytes)
 
   return file
 

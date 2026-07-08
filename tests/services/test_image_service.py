@@ -1,4 +1,5 @@
 from botocore.exceptions import ClientError, BotoCoreError
+from io import BytesIO
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -21,7 +22,8 @@ async def test_upload_image_success(image_obj, mock_image_db_repo, mock_image_s3
 @pytest.mark.anyio
 @pytest.mark.unit
 async def test_upload_image_max_file_size_exceeded_exception(image_service, mock_file):
-  mock_file.read.return_value = b"x" * (10 * 1024 * 1024 + 1)
+  mock_file.size = 10 * 1024 * 1024 + 1
+  mock_file.read.return_value = b"x" * mock_file.size
 
   with pytest.raises(MaxFileSizeExceededException) as exc:
     await image_service.upload_image(1, mock_file)
@@ -41,7 +43,9 @@ async def test_upload_image_resolution_exception(image_service, mock_invalid_fil
 @pytest.mark.anyio
 @pytest.mark.unit
 async def test_upload_image_invalid_image_format_exception(image_service, mock_invalid_file):
-  mock_invalid_file.read.return_value = b"fake_bytes"
+  invalid_bytes = b"fake_bytes"
+  mock_invalid_file.read.return_value = invalid_bytes
+  mock_invalid_file.file = BytesIO(invalid_bytes)
 
   with pytest.raises(InvalidImageFormatException) as exc:
     await image_service.upload_image(1, mock_invalid_file)
