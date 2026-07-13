@@ -44,6 +44,33 @@ POSTGRES_DB=your_postgres_db
 
 # Database URL format: postgresql://USER:PASSWORD@HOST:PORT/DB
 POSTGRES_URL=your_postgres_url
+
+# IMAGE
+
+MAX_IMAGE_WIDTH
+MAX_IMAGE_HEIGHT
+
+# ADMIN
+
+ADMIN_USERNAME
+ADMIN_EMAIL
+ADMIN_PASSWORD
+ADMIN_HASHED_PASSWORD
+
+# SECURITY
+
+DUMMY_PASSWORD
+SECRET_KEY
+ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES
+
+
+# AWS
+
+S3_BUCKET_NAME
+S3_BUCKET_REGION
+S3_ACCESS_KEY_ID
+S3_SECRET_ACCESS_KEY
 ```
 
 > Do not commit real credentials. Replace all values with your own before running the application.
