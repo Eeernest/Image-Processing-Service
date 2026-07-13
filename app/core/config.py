@@ -3,6 +3,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Config(BaseSettings):
   POSTGRES_URL: str
 
+  MAX_IMAGE_WIDTH: int
+
+  MAX_IMAGE_HEIGHT: int
+
   ADMIN_USERNAME: str = "admin_username"
 
   ADMIN_EMAIL: str = "admin_email"
