@@ -6,6 +6,7 @@ from fastapi.concurrency import run_in_threadpool
 from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.exc import IntegrityError
 
+from app.core.config import settings
 from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, DuplicateImageException, ImageNotFoundException
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
@@ -28,15 +29,13 @@ class ImageService:
     try:
       with PILImage.open(file_obj) as img:
         allowed_image_formats = ["PNG", "JPEG", "WEBP"]
-        max_width = 5000
-        max_height = 5000
-
+        
         width, height = img.size
 
         if img.format.upper() not in allowed_image_formats:
           raise InvalidImageFormatException()
 
-        if width > max_width or height > max_height:
+        if width > settings.MAX_IMAGE_WIDTH or height > settings.MAX_IMAGE_HEIGHT:
           raise ImageResolutionException()
 
         return img.format.upper()
