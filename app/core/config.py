@@ -3,9 +3,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Config(BaseSettings):
   POSTGRES_URL: str
 
-  MAX_IMAGE_WIDTH: int
+  MAX_IMAGE_WIDTH: int = 5000
 
-  MAX_IMAGE_HEIGHT: int
+  MAX_IMAGE_HEIGHT: int = 5000
 
   ADMIN_USERNAME: str = "admin_username"
 
