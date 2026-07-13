@@ -47,30 +47,29 @@ POSTGRES_URL=your_postgres_url
 
 # IMAGE
 
-MAX_IMAGE_WIDTH
-MAX_IMAGE_HEIGHT
+MAX_IMAGE_WIDTH=your_max_image_width
+MAX_IMAGE_HEIGHT=your_max_image_height
 
 # ADMIN
 
-ADMIN_USERNAME
-ADMIN_EMAIL
-ADMIN_PASSWORD
-ADMIN_HASHED_PASSWORD
+ADMIN_USERNAME=your_admin_username
+ADMIN_EMAIL=your_admin_email
+ADMIN_PASSWORD=your_admin_password
+ADMIN_HASHED_PASSWORD=your_admin_hashed_password
 
 # SECURITY
 
-DUMMY_PASSWORD
-SECRET_KEY
-ALGORITHM
-ACCESS_TOKEN_EXPIRE_MINUTES
-
+DUMMY_PASSWORD=your_dummy_password
+SECRET_KEY=your_secret_key
+ALGORITHM=your_algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES=your_access_token_expire_minutes
 
 # AWS
 
-S3_BUCKET_NAME
-S3_BUCKET_REGION
-S3_ACCESS_KEY_ID
-S3_SECRET_ACCESS_KEY
+S3_BUCKET_NAME=your_s3_bucket_name
+S3_BUCKET_REGION=your_s3_bucket_region
+S3_ACCESS_KEY_ID=your_s3_access_key_id
+S3_SECRET_ACCESS_KEY=your_s3_secret_access_key
 ```
 
 > Do not commit real credentials. Replace all values with your own before running the application.
