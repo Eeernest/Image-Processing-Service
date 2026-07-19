@@ -1,5 +1,6 @@
 import io
 import mimetypes
+from typing import BinaryIO
 
 from botocore.exceptions import ClientError, BotoCoreError
 from fastapi.concurrency import run_in_threadpool
@@ -11,7 +12,7 @@ class ImageS3Repository:
   def __init__(self, s3_client: S3Client):
     self.s3_client = s3_client
 
-  async def upload_to_s3(self, file_bytes: io[bytes], key: str, content_type: str | None = None) -> None:
+  async def upload_to_s3(self, file_bytes: BinaryIO, key: str, content_type: str | None = None) -> None:
     try:
       await run_in_threadpool(
         self.s3_client.upload_fileobj,
