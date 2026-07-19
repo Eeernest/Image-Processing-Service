@@ -1,4 +1,4 @@
-from io import BytesIO
+import io
 import mimetypes
 
 from botocore.exceptions import ClientError, BotoCoreError
@@ -11,11 +11,11 @@ class ImageS3Repository:
   def __init__(self, s3_client: S3Client):
     self.s3_client = s3_client
 
-  async def upload_to_s3(self, file_bytes: bytes, key: str, content_type: str | None = None) -> None:
+  async def upload_to_s3(self, file_bytes: io[bytes], key: str, content_type: str | None = None) -> None:
     try:
       await run_in_threadpool(
         self.s3_client.upload_fileobj,
-        BytesIO(file_bytes),
+        file_bytes,
         settings.S3_BUCKET_NAME,
         key,
         ExtraArgs={"ContentType": content_type}
@@ -34,7 +34,7 @@ class ImageS3Repository:
     return {"message": "Image deleted"}
 
   async def download_from_s3(self, key: str) -> bytes:
-    buffer = BytesIO()
+    buffer = io.BytesIO()
 
     try:
       await run_in_threadpool(
