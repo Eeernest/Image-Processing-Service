@@ -1,5 +1,4 @@
 import io
-import mimetypes
 from typing import BinaryIO
 
 from botocore.exceptions import ClientError, BotoCoreError
