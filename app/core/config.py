@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Config(BaseSettings):
   POSTGRES_URL: str
 
+  MAX_FILE_SIZE: int = 10 * 1024 * 1024
+
   MAX_IMAGE_WIDTH: int = 5000
 
   MAX_IMAGE_HEIGHT: int = 5000

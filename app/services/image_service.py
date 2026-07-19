@@ -17,32 +17,6 @@ class ImageService:
     self.db_repo = db_repo
     self.s3_repo = s3_repo
 
-  def _validate_file_size(self, file_size: int) -> int:
-    max_file_size = 10 * 1024 * 1024
-
-    if file_size > max_file_size:
-      raise MaxFileSizeExceededException()
-
-    return file_size
-
-  def _validate_image(self, file_obj) -> str:
-    try:
-      with PILImage.open(file_obj) as img:
-        allowed_image_formats = ["PNG", "JPEG", "WEBP"]
-        
-        width, height = img.size
-
-        if img.format.upper() not in allowed_image_formats:
-          raise InvalidImageFormatException()
-
-        if width > settings.MAX_IMAGE_WIDTH or height > settings.MAX_IMAGE_HEIGHT:
-          raise ImageResolutionException()
-
-        return img.format.upper()
-
-    except UnidentifiedImageError:
-      raise InvalidImageFormatException()
-
   async def upload_image(self, account_id: int, file: UploadFile) -> Image:
     filename = file.filename
     file_size_bytes = self._validate_file_size(file.size)
@@ -76,3 +50,29 @@ class ImageService:
       await self.s3_repo.delete_from_s3(generated_key)
 
       raise DuplicateImageException()
+
+  def _validate_file_size(self, file_size: int) -> int:
+      max_file_size = settings.MAX_FILE_SIZE
+  
+      if file_size > max_file_size:
+        raise MaxFileSizeExceededException()
+  
+      return file_size
+  
+  def _validate_image(self, file_obj) -> str:
+    try:
+      with PILImage.open(file_obj) as img:
+        allowed_image_formats = ["PNG", "JPEG", "WEBP"]
+        
+        width, height = img.size
+
+        if img.format.upper() not in allowed_image_formats:
+          raise InvalidImageFormatException()
+
+        if width > settings.MAX_IMAGE_WIDTH or height > settings.MAX_IMAGE_HEIGHT:
+          raise ImageResolutionException()
+
+        return img.format.upper()
+
+    except UnidentifiedImageError:
+      raise InvalidImageFormatException()
