@@ -23,6 +23,10 @@ def file_bytes():
   return b"fake_image_bytes"
 
 @pytest.fixture()
+def file_stream(file_bytes):
+  return BytesIO(file_bytes)
+
+@pytest.fixture()
 def key():
   return "account/1/images/test_image.jpeg"
 
