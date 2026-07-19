@@ -45,11 +45,6 @@ POSTGRES_DB=your_postgres_db
 # Database URL format: postgresql://USER:PASSWORD@HOST:PORT/DB
 POSTGRES_URL=your_postgres_url
 
-# IMAGE
-
-MAX_IMAGE_WIDTH=your_max_image_width
-MAX_IMAGE_HEIGHT=your_max_image_height
-
 # ADMIN
 
 ADMIN_USERNAME=your_admin_username
