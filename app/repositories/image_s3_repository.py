@@ -11,11 +11,11 @@ class ImageS3Repository:
   def __init__(self, s3_client: S3Client):
     self.s3_client = s3_client
 
-  async def upload_to_s3(self, file_bytes: BinaryIO, key: str, content_type: str | None = None) -> None:
+  async def upload_to_s3(self, file: BinaryIO, key: str, content_type: str | None = None) -> None:
     try:
       await run_in_threadpool(
         self.s3_client.upload_fileobj,
-        file_bytes,
+        file,
         settings.S3_BUCKET_NAME,
         key,
         ExtraArgs={"ContentType": content_type}
@@ -33,7 +33,7 @@ class ImageS3Repository:
 
     return {"message": "Image deleted"}
 
-  async def download_from_s3(self, key: str) -> bytes:
+  async def download_from_s3(self, key: str) -> BinaryIO:
     buffer = io.BytesIO()
 
     try:
@@ -44,7 +44,9 @@ class ImageS3Repository:
         buffer
       )
 
-      return buffer.getvalue()
+      buffer.seek(0)
+
+      return buffer
 
     except (ClientError, BotoCoreError) as exc:
       raise exc
