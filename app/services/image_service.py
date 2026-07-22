@@ -1,4 +1,5 @@
 from io import BytesIO
+from typing import BinaryIO
 
 from botocore.exceptions import ClientError, BotoCoreError
 from fastapi import UploadFile
@@ -7,7 +8,7 @@ from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
-from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, DuplicateImageException, ImageNotFoundException
+from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, S3DownloadFailedException, DuplicateImageException, ImageNotFoundException, ImageTooSmallException
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
 from app.repositories.image_s3_repository import ImageS3Repository
@@ -30,7 +31,7 @@ class ImageService:
     try:
       await self.s3_repo.upload_to_s3(file.file, generated_key, content_type)
 
-    except (ClientError,BotoCoreError):
+    except (ClientError, BotoCoreError):
       raise S3UploadFailedException()
 
     image_obj = Image(
@@ -43,6 +44,46 @@ class ImageService:
 
     try:
       return await self.db_repo.save(image_obj)
+
+    except IntegrityError:
+      await self.s3_repo.delete_from_s3(generated_key)
+
+      raise DuplicateImageException()
+
+  async def resize_image(self, image_id: int, width: int, height: int) -> Image:
+    image_obj = await self.db_repo.get_by_id(image_id)
+
+    if image_obj is None:
+      raise ImageNotFoundException()
+
+    try:
+      file = await self.s3_repo.download_from_s3(image_obj.s3_key)
+
+    except (ClientError, BotoCoreError):
+      raise S3DownloadFailedException()
+
+    resized_file = await run_in_threadpool(self._resize, file, width, height)
+
+    filename = f"resized_{width}x{height}_{image_obj.filename}"
+    generated_key = f"account/{image_obj.account_id}/images/{filename}"
+    content_type = f"image/{str(image_obj.file_format).lower()}"
+
+    try:
+      await self.s3_repo.upload_to_s3(resized_file, generated_key, content_type)
+
+    except (ClientError, BotoCoreError):
+      raise S3UploadFailedException()
+
+    resized_image_obj = Image(
+      account_id=image_obj.account_id,
+      filename=filename,
+      s3_key=generated_key,
+      file_size_bytes=len(resized_file.getvalue()),
+      file_format=image_obj.file_format
+    )
+
+    try:
+      return await self.db_repo.save(resized_image_obj)
 
     except IntegrityError:
       await self.s3_repo.delete_from_s3(generated_key)
@@ -74,3 +115,20 @@ class ImageService:
 
     except UnidentifiedImageError:
       raise InvalidImageFormatException()
+
+  def _resize(self, file: BinaryIO, width: int, height: int) -> BytesIO:
+    with PILImage.open(file) as img:
+      orig_width, orig_height = img.size
+
+      if orig_width < width or orig_height < height:
+        raise ImageTooSmallException()
+
+      img.thumbnail((width, height), PILImage.Resampling.LANCZOS)
+
+      output = BytesIO()
+
+      img.save(output, format=img.format)
+
+      output.seek(0)
+
+      return output
