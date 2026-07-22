@@ -22,8 +22,6 @@ class ImageService:
     file_size_bytes = self._validate_file_size(file.size)
     content_type = file.content_type
 
-    file.file.seek(0)
-
     detected_format = await run_in_threadpool(self._validate_image, file.file)
     generated_key = f"account/{account_id}/images/{filename}"
 
