@@ -59,10 +59,10 @@ class ImageService:
   
       return file_size
   
-  def _validate_image(self, file_obj) -> str:
+  def _validate_image(self, file) -> str:
     try:
-      with PILImage.open(file_obj) as img:
-        allowed_image_formats = ["PNG", "JPEG", "WEBP"]
+      with PILImage.open(file) as img:
+        allowed_image_formats = settings.ALLOWED_IMAGE_FOMRAT
         
         width, height = img.size
 
