@@ -54,6 +54,10 @@ class S3UploadFailedException(AppBaseException):
   status_code = 503
   detail = "Failed to upload image to storage"
 
+class S3DownloadFailedException(AppBaseException):
+  status_code = 503
+  detail = "Failed to download image from storage"
+
 class DuplicateImageException(AppBaseException):
   status_code = 409
   detail = "Image with the same key is already uploaded"
@@ -61,3 +65,7 @@ class DuplicateImageException(AppBaseException):
 class ImageNotFoundException(AppBaseException):
   status_code = 404
   detail = "Image not found"
+
+class ImageTooSmallException(AppBaseException):
+  status_code = 422
+  detail = "Image is smaller than target bounds"

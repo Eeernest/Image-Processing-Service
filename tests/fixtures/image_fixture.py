@@ -62,7 +62,7 @@ def image_service(mock_image_db_repo, mock_image_s3_repo):
 
 @pytest.fixture()
 def mock_file():
-  img = PILImage.new("RGB", (1, 1), color="red")
+  img = PILImage.new("RGB", (100, 100), color="red")
   img_byte_arr = BytesIO()
   img.save(img_byte_arr, format="JPEG")
   real_image_bytes = img_byte_arr.getvalue()
@@ -75,6 +75,18 @@ def mock_file():
   file.file = BytesIO(real_image_bytes)
 
   return file
+
+@pytest.fixture()
+def mock_file_like():
+  img = PILImage.new("RGB", (100, 100), color="red")
+  
+  buffer = BytesIO()
+
+  img.save(buffer, format="JPEG")
+
+  buffer.seek(0)
+
+  return buffer
 
 @pytest.fixture()
 def mock_invalid_file():
