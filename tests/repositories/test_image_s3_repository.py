@@ -21,7 +21,7 @@ async def test_delete_from_s3(mocked_aws, image_s3_repo, file_stream, key):
   with pytest.raises(ClientError) as exc:
         mocked_aws.get_object(Bucket=os.environ["S3_BUCKET_NAME"], Key=key)
         
-  assert result == {"message": "Image deleted"}
+  assert result == None
   assert exc.value.response["Error"]["Code"] == "NoSuchKey"
 
 @pytest.mark.anyio
