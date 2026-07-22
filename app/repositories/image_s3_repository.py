@@ -24,14 +24,12 @@ class ImageS3Repository:
     except (ClientError, BotoCoreError) as exc:
       raise exc
 
-  async def delete_from_s3(self, key: str) -> dict:
+  async def delete_from_s3(self, key: str) -> None:
     await run_in_threadpool(
       self.s3_client.delete_object,
       Bucket=settings.S3_BUCKET_NAME,
       Key=key
     )
-
-    return {"message": "Image deleted"}
 
   async def download_from_s3(self, key: str) -> BinaryIO:
     buffer = io.BytesIO()
