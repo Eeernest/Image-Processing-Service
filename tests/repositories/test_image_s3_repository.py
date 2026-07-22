@@ -31,4 +31,4 @@ async def test_download_from_s3(image_s3_repo, file_bytes, file_stream, key):
 
    result = await image_s3_repo.download_from_s3(key)
 
-   assert result == file_bytes
+   assert result.read() == file_bytes
