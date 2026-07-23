@@ -5,6 +5,8 @@ from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionExc
 @pytest.mark.anyio
 @pytest.mark.unit
 async def test_upload_image_success(image_obj, mock_image_service, unit_image_client, file_payload):
+  image_obj.id = 1
+
   mock_image_service.upload_image.return_value = image_obj
 
   result = await unit_image_client.post("/upload_image", files=file_payload)
