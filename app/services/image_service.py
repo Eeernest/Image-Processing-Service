@@ -71,12 +71,6 @@ class ImageService:
     generated_key = f"account/{image_obj.account_id}/images/{filename}"
     content_type = f"image/{str(image_obj.file_format).lower()}"
 
-    try:
-      await self.s3_repo.upload_to_s3(resized_file, generated_key, content_type)
-
-    except (ClientError, BotoCoreError):
-      raise S3UploadFailedException()
-
     resized_image_obj = Image(
       account_id=image_obj.account_id,
       filename=filename,
@@ -84,6 +78,12 @@ class ImageService:
       file_size_bytes=len(resized_file.getvalue()),
       file_format=image_obj.file_format
     )
+
+    try:
+      await self.s3_repo.upload_to_s3(resized_file, generated_key, content_type)
+
+    except (ClientError, BotoCoreError):
+      raise S3UploadFailedException()
 
     try:
       return await self.db_repo.save(resized_image_obj)
