@@ -122,11 +122,13 @@ async def unit_image_client(mock_image_service, mock_image_current_user):
 
   app.dependency_overrides.clear()
 
-@pytest.fixture
-def file_payload():
+@pytest.fixture()
+def upload_file_payload():
   return {"file": ("test.jpeg", b"data", "image/jpeg")}
 
-
 @pytest.fixture()
-def integration_image_service(image_db_repo, image_s3_repo):
-  return ImageService(image_db_repo, image_s3_repo)
+def resize_file_params():
+  return {
+    "width": 10,
+    "height": 14
+  }
