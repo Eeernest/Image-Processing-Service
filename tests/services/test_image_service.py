@@ -3,7 +3,7 @@ from io import BytesIO
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, DuplicateImageException, ImageNotFoundException, S3DownloadFailedException, ImageTooSmallException
+from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, DuplicateImageException, ImageNotFoundException, S3DownloadFailedException, ImageTooSmallException
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -100,7 +100,7 @@ async def test_resize_image_success(image_obj, mock_image_db_repo, mock_image_s3
 
   mock_image_db_repo.save.return_value = image_obj
 
-  result = await image_service.resize_image(1, 10, 10)
+  result = await image_service.resize_image(image_obj.account_id, 1, 10, 10)
 
   assert result == image_obj
   assert mock_image_s3_repo.upload_to_s3.call_count == 1
@@ -112,10 +112,21 @@ async def test_resize_image_not_found_exception(mock_image_db_repo, image_servic
   mock_image_db_repo.get_by_id.return_value = None
 
   with pytest.raises(ImageNotFoundException) as exc:
-    await image_service.resize_image(10, 4, 12)
+    await image_service.resize_image(1, 10, 4, 12)
 
   assert exc.value.status_code == ImageNotFoundException.status_code
   assert exc.value.detail == ImageNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_resize_image_user_not_found_exception(image_obj, mock_image_db_repo, image_service):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+
+  with pytest.raises(UserNotFoundException) as exc:
+    await image_service.resize_image(12, 1, 100, 17)
+
+  assert exc.value.status_code == UserNotFoundException.status_code
+  assert exc.value.detail == UserNotFoundException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -124,7 +135,7 @@ async def test_resize_image_s3_download_exception(image_obj, mock_image_db_repo,
   mock_image_s3_repo.download_from_s3.side_effect = BotoCoreError()
 
   with pytest.raises(S3DownloadFailedException) as exc:
-    await image_service.resize_image(1, 10, 20)
+    await image_service.resize_image(image_obj.account_id, 1, 10, 20)
 
   assert exc.value.status_code == S3DownloadFailedException.status_code
   assert exc.value.detail == S3DownloadFailedException.detail
@@ -136,7 +147,7 @@ async def test_resize_image_too_small_exception(image_obj, mock_image_db_repo, m
   mock_image_s3_repo.download_from_s3.return_value = mock_file_like
 
   with pytest.raises(ImageTooSmallException) as exc:
-    await image_service.resize_image(1, 1000, 2000)
+    await image_service.resize_image(image_obj.account_id, 1, 1000, 2000)
 
   assert exc.value.status_code == ImageTooSmallException.status_code
   assert exc.value.detail == ImageTooSmallException.detail
@@ -149,7 +160,7 @@ async def test_resize_image_s3_upload_exception(image_obj, mock_image_db_repo, m
   mock_image_s3_repo.upload_to_s3.side_effect = BotoCoreError()
 
   with pytest.raises(S3UploadFailedException) as exc:
-    await image_service.resize_image(1, 20, 14)
+    await image_service.resize_image(image_obj.account_id, 1, 20, 14)
 
   assert exc.value.status_code == S3UploadFailedException.status_code
   assert exc.value.detail == S3UploadFailedException.detail
@@ -165,7 +176,7 @@ async def test_resize_image_race_condition(image_obj, mock_image_db_repo, mock_i
   mock_image_s3_repo.delete_from_s3.return_value = None
 
   with pytest.raises(DuplicateImageException) as exc:
-    await image_service.resize_image(1, 11, 12)
+    await image_service.resize_image(image_obj.account_id, 1, 11, 12)
 
   assert exc.value.status_code == DuplicateImageException.status_code
   assert exc.value.detail == DuplicateImageException.detail
