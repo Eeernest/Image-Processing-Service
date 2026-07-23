@@ -120,6 +120,8 @@ async def test_resize_image_not_found_exception(mock_image_db_repo, image_servic
 @pytest.mark.anyio
 @pytest.mark.unit
 async def test_resize_image_user_not_found_exception(image_obj, mock_image_db_repo, image_service):
+  image_obj.account_id = 2
+
   mock_image_db_repo.get_by_id.return_value = image_obj
 
   with pytest.raises(UserNotFoundException) as exc:
