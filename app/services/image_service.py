@@ -8,7 +8,7 @@ from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
-from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, S3DownloadFailedException, DuplicateImageException, ImageNotFoundException, ImageTooSmallException
+from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, S3DownloadFailedException, DuplicateImageException, ImageNotFoundException, ImageTooSmallException
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
 from app.repositories.image_s3_repository import ImageS3Repository
@@ -50,11 +50,14 @@ class ImageService:
 
       raise DuplicateImageException()
 
-  async def resize_image(self, image_id: int, width: int, height: int) -> Image:
+  async def resize_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
     image_obj = await self.db_repo.get_by_id(image_id)
 
     if image_obj is None:
       raise ImageNotFoundException()
+
+    if image_obj.account_id != account_id:
+      raise UserNotFoundException()
 
     try:
       file = await self.s3_repo.download_from_s3(image_obj.s3_key)
