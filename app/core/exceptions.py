@@ -38,6 +38,10 @@ class DeletedAccountException(AppBaseException):
   status_code = 400
   detail = "Account is deleted"
 
+class UserNotFoundException(AppBaseException):
+  status_code = 404
+  detail = "User not found"
+
 class MaxFileSizeExceededException(AppBaseException):
   status_code = 413
   detail = "File size is too large"
