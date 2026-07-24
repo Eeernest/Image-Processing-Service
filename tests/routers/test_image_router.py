@@ -116,3 +116,71 @@ async def test_resize_image_race_condition(mock_image_service, unit_image_client
 
   assert result.status_code == 409
   assert data["detail"] == DuplicateImageException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_crop_center_image_success(image_obj, mock_image_service, unit_image_client, crop_center_params):
+  image_obj.id = 1
+
+  mock_image_service.crop_center_image.return_value = image_obj
+
+  result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 200
+  assert data["id"] == image_obj.id
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_crop_center_image_not_fount_exception(mock_image_service, unit_image_client, crop_center_params):
+  mock_image_service.crop_center_image.side_effect = ImageNotFoundException()
+
+  result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 404
+  assert data["detail"] == ImageNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_crop_center_image_user_not_found_exception(mock_image_service, unit_image_client, crop_center_params):
+  mock_image_service.crop_center_image.side_effect = UserNotFoundException()
+
+  result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 404
+  assert data["detail"] == UserNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_crop_center_image_s3_download_exception(mock_image_service, unit_image_client, crop_center_params):
+  mock_image_service.crop_center_image.side_effect = S3DownloadFailedException()
+
+  result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 503
+  assert data["detail"] == S3DownloadFailedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_crop_center_image_race_condition(mock_image_service, unit_image_client, crop_center_params):
+  mock_image_service.crop_center_image.side_effect = DuplicateImageException()
+
+  result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 409
+  assert data["detail"] == DuplicateImageException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_crop_center_image_s3_upload_exception(mock_image_service, unit_image_client, crop_center_params):
+  mock_image_service.crop_center_image.side_effect = S3UploadFailedException()
+
+  result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 503
+  assert data["detail"] == S3UploadFailedException.detail

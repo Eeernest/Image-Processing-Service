@@ -132,3 +132,10 @@ def resize_file_params():
     "width": 10,
     "height": 14
   }
+
+@pytest.fixture()
+def crop_center_params():
+  return {
+    "width": 20,
+    "height": 20
+  }
