@@ -31,7 +31,7 @@ class ImageS3Repository:
       Key=key
     )
 
-  async def download_from_s3(self, key: str) -> BinaryIO:
+  async def download_from_s3(self, key: str) -> io.BytesIO:
     buffer = io.BytesIO()
 
     try:
