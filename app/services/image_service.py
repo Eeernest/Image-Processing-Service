@@ -28,39 +28,20 @@ class ImageService:
 
     file.file.seek(0)
 
-    try:
-      await self.s3_repo.upload_to_s3(file.file, generated_key, content_type)
+    image_obj = self._create_image_obj(account_id, filename, generated_key, file_size_bytes, detected_format)
 
-    except (ClientError, BotoCoreError):
-      raise S3UploadFailedException()
+    saved_image_obj = await self._try_save_image_obj(image_obj)
 
-    image_obj = Image(
-      account_id=account_id,
-      filename=filename,
-      s3_key=generated_key,
-      file_size_bytes=file_size_bytes,
-      file_format=detected_format
-    )
+    await self._try_upload_to_s3(file.file, generated_key, content_type, saved_image_obj.id)
 
-    try:
-      return await self.db_repo.save(image_obj)
-
-    except IntegrityError:
-      await self.s3_repo.delete_from_s3(generated_key)
-
-      raise DuplicateImageException()
+    return saved_image_obj
 
   async def resize_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
     image_obj = await self._get_image_obj_by_id(image_id)
 
-    if image_obj.account_id != account_id:
-      raise UserNotFoundException()
+    self._check_account_id(image_obj.account_id, account_id)
 
-    try:
-      file = await self.s3_repo.download_from_s3(image_obj.s3_key)
-
-    except (ClientError, BotoCoreError):
-      raise S3DownloadFailedException()
+    file = await self._try_download_from_s3(image_obj.s3_key)
 
     resized_file = await run_in_threadpool(self._resize, file, width, height)
 
@@ -68,35 +49,72 @@ class ImageService:
     generated_key = f"account/{image_obj.account_id}/images/{filename}"
     content_type = f"image/{str(image_obj.file_format).lower()}"
 
-    resized_image_obj = Image(
-      account_id=image_obj.account_id,
-      filename=filename,
-      s3_key=generated_key,
-      file_size_bytes=len(resized_file.getvalue()),
-      file_format=image_obj.file_format
-    )
+    resized_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(resized_file.getvalue()), image_obj.file_format)
 
+    saved_resized_image_obj = await self._try_save_image_obj(resized_image_obj)
+
+    await self._try_upload_to_s3(resized_file, generated_key, content_type, saved_resized_image_obj.id)
+
+    return saved_resized_image_obj
+
+
+
+  async def _try_upload_to_s3(self, file: BinaryIO, generated_key: str, content_type: str, image_id) -> None:
     try:
-      await self.s3_repo.upload_to_s3(resized_file, generated_key, content_type)
+      return await self.s3_repo.upload_to_s3(file, generated_key, content_type)
 
     except (ClientError, BotoCoreError):
+      await self.db_repo.delete(image_id)
+
       raise S3UploadFailedException()
 
+  async def _try_download_from_s3(self, s3_key: str) -> BytesIO:
     try:
-      return await self.db_repo.save(resized_image_obj)
+      return await self.s3_repo.download_from_s3(s3_key)
+
+    except (ClientError, BotoCoreError):
+      raise S3DownloadFailedException()
+
+  
+
+  async def _try_save_image_obj(self, image_obj: Image) -> Image:
+    try:
+      return await self.db_repo.save(image_obj)
 
     except IntegrityError:
-      await self.s3_repo.delete_from_s3(generated_key)
-
       raise DuplicateImageException()
 
+  async def _get_image_obj_by_id(self, image_id: int) -> Image:
+    image_obj = await self.db_repo.get_by_id(image_id)
+
+    if image_obj is None:
+      raise ImageNotFoundException()
+
+    return image_obj
+
+  
+  def _check_account_id(self, image_obj_account_id: int, account_id: int) -> None:
+    if image_obj_account_id != account_id:
+      raise UserNotFoundException()
+
+  def _create_image_obj(self, account_id: int, filename: str, s3_key: str, file_size_bytes: int, file_format: str) -> Image:
+    return Image(
+      account_id=account_id,
+      filename=filename,
+      s3_key=s3_key,
+      file_size_bytes=file_size_bytes,
+      file_format=file_format
+    )
+
+  
+
   def _validate_file_size(self, file_size: int) -> int:
-      max_file_size = settings.MAX_FILE_SIZE
-  
-      if file_size > max_file_size:
-        raise MaxFileSizeExceededException()
-  
-      return file_size
+    max_file_size = settings.MAX_FILE_SIZE
+
+    if file_size > max_file_size:
+      raise MaxFileSizeExceededException()
+
+    return file_size
   
   def _validate_image(self, file) -> str:
     try:
@@ -115,14 +133,6 @@ class ImageService:
 
     except UnidentifiedImageError:
       raise InvalidImageFormatException()
-
-  async def _get_image_obj_by_id(self, image_id: int) -> Image:
-    image_obj = await self.db_repo.get_by_id(image_id)
-
-    if image_obj is None:
-      raise ImageNotFoundException()
-
-    return image_obj
 
   def _resize(self, file: BinaryIO, width: int, height: int) -> BytesIO:
     with PILImage.open(file) as img:
