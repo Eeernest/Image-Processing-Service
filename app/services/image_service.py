@@ -37,7 +37,7 @@ class ImageService:
     return saved_image_obj
 
   async def resize_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
-    image_obj = await self._get_image_obj_by_id(image_id)
+    image_obj = await self._try_get_image_obj_by_id(image_id)
 
     self._check_account_id(image_obj.account_id, account_id)
 
@@ -56,6 +56,27 @@ class ImageService:
     await self._try_upload_to_s3(resized_file, generated_key, content_type, saved_resized_image_obj.id)
 
     return saved_resized_image_obj
+
+  async def crop_center_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
+    image_obj = await self._try_get_image_obj_by_id(image_id)
+
+    self._check_account_id(image_obj.account_id, account_id)
+
+    file = await self._try_download_from_s3(image_obj.s3_key)
+
+    cropped_file = await run_in_threadpool(self._crop_center, file, width, height)
+
+    filename = f"cropped_{width}x{height}_{image_obj.filename}"
+    generated_key = f"account/{image_obj.account_id}/images/{filename}"
+    content_type = f"image{str(image_obj.file_format).lower()}"
+
+    cropped_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(cropped_file.getvalue()), image_obj.file_format)
+
+    saved_cropped_image_obj = await self._try_save_image_obj(cropped_image_obj)
+
+    await self._try_upload_to_s3(cropped_file, generated_key, content_type, saved_cropped_image_obj.id)
+
+    return saved_cropped_image_obj
 
 
 
@@ -84,7 +105,7 @@ class ImageService:
     except IntegrityError:
       raise DuplicateImageException()
 
-  async def _get_image_obj_by_id(self, image_id: int) -> Image:
+  async def _try_get_image_obj_by_id(self, image_id: int) -> Image:
     image_obj = await self.db_repo.get_by_id(image_id)
 
     if image_obj is None:
@@ -146,6 +167,28 @@ class ImageService:
       output = BytesIO()
 
       img.save(output, format=img.format)
+
+      output.seek(0)
+
+      return output
+
+  def _crop_center(self, file: BinaryIO, width: int, height: int) -> BytesIO:
+    with PILImage.open(file) as img:
+      orig_width, orig_height = img.size
+
+      if orig_width < width or orig_height < height:
+        raise ImageTooSmallException()
+
+      left = (orig_width - width) // 2
+      top = (orig_height - height) // 2
+      right = (orig_width + width) // 2
+      bottom = (orig_height + height) // 2
+
+      cropped_img = img.crop((left, top, right, bottom))
+
+      output = BytesIO()
+
+      cropped_img.save(output, format=img.format)
 
       output.seek(0)
 
