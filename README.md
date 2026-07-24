@@ -17,6 +17,14 @@ Image processing service REST API built with Python and FastAPI
 - Maximal file size: 10MB
 - Allowed formats: JPEG, PNG, WEBP
 
+### Resize Image
+- Authentication is required
+- User can resize image
+
+### Crop Center Image
+- Authentication is required
+- User can crop from center image
+
 ## Installation
 1. Clone the repository:
 
