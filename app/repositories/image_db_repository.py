@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +20,11 @@ class ImageDbRepository:
       await self.session.rollback()
 
       raise exc
+
+  async def delete(self, id: int) -> None:
+    statement = delete(Image).where(Image.id == id)
+    await self.session.execute(statement)
+    await self.session.commit()
 
   async def get_by_id(self, id: int) -> Image | None:
     result = await self.session.execute(select(Image).where(Image.id == id))
