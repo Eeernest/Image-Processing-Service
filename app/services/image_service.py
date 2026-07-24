@@ -51,10 +51,7 @@ class ImageService:
       raise DuplicateImageException()
 
   async def resize_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
-    image_obj = await self.db_repo.get_by_id(image_id)
-
-    if image_obj is None:
-      raise ImageNotFoundException()
+    image_obj = await self._get_image_obj_by_id(image_id)
 
     if image_obj.account_id != account_id:
       raise UserNotFoundException()
@@ -118,6 +115,14 @@ class ImageService:
 
     except UnidentifiedImageError:
       raise InvalidImageFormatException()
+
+  async def _get_image_obj_by_id(self, image_id: int) -> Image:
+    image_obj = await self.db_repo.get_by_id(image_id)
+
+    if image_obj is None:
+      raise ImageNotFoundException()
+
+    return image_obj
 
   def _resize(self, file: BinaryIO, width: int, height: int) -> BytesIO:
     with PILImage.open(file) as img:
