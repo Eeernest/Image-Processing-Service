@@ -89,7 +89,7 @@ class ImageService:
     converted_file = await run_in_threadpool(self._change_format, file, format)
 
     base_name = str(image_obj.filename).rsplit(".", 1)[0]
-    filename = f"converted_{base_name}.{format}"
+    filename = f"converted_{base_name}.{format.value.lower()}"
     generated_key = f"account/{image_obj.account_id}/images/{filename}"
     content_type = f"image/{format.lower()}"
 
