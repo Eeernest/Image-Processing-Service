@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, ImageNotFoundException, S3DownloadFailedException, S3UploadFailedException, DuplicateImageException
+from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, ImageNotFoundException, S3DownloadFailedException, S3UploadFailedException, DuplicateImageException, ImageSameFormatException
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -180,6 +180,83 @@ async def test_crop_center_image_s3_upload_exception(mock_image_service, unit_im
   mock_image_service.crop_center_image.side_effect = S3UploadFailedException()
 
   result = await unit_image_client.get("/crop_center_image/1", params=crop_center_params)
+  data = result.json()
+
+  assert result.status_code == 503
+  assert data["detail"] == S3UploadFailedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_success(image_obj, mock_image_service, unit_image_client, change_format_params):
+  image_obj.id = 1
+
+  mock_image_service.change_image_format.return_value = image_obj
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
+
+  assert result.status_code == 200
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_image_not_found_exception(mock_image_service, unit_image_client, change_format_params):
+  mock_image_service.change_image_format.side_effect = ImageNotFoundException()
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
+  data = result.json()
+
+  assert result.status_code == 404
+  assert data["detail"] == ImageNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_user_not_found_exception(mock_image_service, unit_image_client, change_format_params):
+  mock_image_service.change_image_format.side_effect = UserNotFoundException()
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
+  data = result.json()
+
+  assert result.status_code == 404
+  assert data["detail"] == UserNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_s3_download_exception(mock_image_service, unit_image_client, change_format_params):
+  mock_image_service.change_image_format.side_effect = S3DownloadFailedException()
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
+  data = result.json()
+
+  assert result.status_code == 503
+  assert data["detail"] == S3DownloadFailedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_same_format_exception(mock_image_service, unit_image_client, change_format_params):
+  mock_image_service.change_image_format.side_effect = ImageSameFormatException()
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
+  data = result.json()
+
+  assert result.status_code == 400
+  assert data["detail"] == ImageSameFormatException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_race_condition(mock_image_service, unit_image_client, change_format_params):
+  mock_image_service.change_image_format.side_effect = DuplicateImageException()
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
+  data = result.json()
+
+  assert result.status_code == 409
+  assert data["detail"] == DuplicateImageException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_s3_upload_exception(mock_image_service, unit_image_client, change_format_params):
+  mock_image_service.change_image_format.side_effect = S3UploadFailedException()
+
+  result = await unit_image_client.get("/change_image_format/1", params=change_format_params)
   data = result.json()
 
   assert result.status_code == 503

@@ -12,6 +12,7 @@ from app.main import app
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
 from app.repositories.image_s3_repository import ImageS3Repository
+from app.schemas.image_schema import ImageFormat
 from app.services.image_service import ImageService
 
 @pytest.fixture()
@@ -138,4 +139,10 @@ def crop_center_params():
   return {
     "width": 20,
     "height": 20
+  }
+
+@pytest.fixture()
+def change_format_params():
+  return {
+    "format": ImageFormat.WEBP.value
   }
