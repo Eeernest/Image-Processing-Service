@@ -73,3 +73,7 @@ class ImageNotFoundException(AppBaseException):
 class ImageTooSmallException(AppBaseException):
   status_code = 422
   detail = "Image is smaller than target bounds"
+
+class ImageSameFormatException(AppBaseException):
+  status_code = 400
+  detail = "Chosen format is the same as original format"
