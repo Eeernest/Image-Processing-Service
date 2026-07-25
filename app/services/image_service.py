@@ -8,10 +8,11 @@ from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
-from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, S3DownloadFailedException, DuplicateImageException, ImageNotFoundException, ImageTooSmallException
+from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, S3DownloadFailedException, DuplicateImageException, ImageNotFoundException, ImageTooSmallException, ImageSameFormatException
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
 from app.repositories.image_s3_repository import ImageS3Repository
+from app.schemas.image_schema import ImageFormat
 
 class ImageService:
   def __init__(self, db_repo: ImageDbRepository, s3_repo: ImageS3Repository):
@@ -68,7 +69,7 @@ class ImageService:
 
     filename = f"cropped_{width}x{height}_{image_obj.filename}"
     generated_key = f"account/{image_obj.account_id}/images/{filename}"
-    content_type = f"image{str(image_obj.file_format).lower()}"
+    content_type = f"image/{str(image_obj.file_format).lower()}"
 
     cropped_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(cropped_file.getvalue()), image_obj.file_format)
 
@@ -77,6 +78,28 @@ class ImageService:
     await self._try_upload_to_s3(cropped_file, generated_key, content_type, saved_cropped_image_obj.id)
 
     return saved_cropped_image_obj
+
+  async def change_image_format(self, account_id: int, image_id: int, format: ImageFormat) -> Image:
+    image_obj = await self._try_get_image_obj_by_id(image_id)
+
+    self._check_account_id(image_obj.account_id, account_id)
+
+    file = await self._try_download_from_s3(image_obj.s3_key)
+
+    converted_file = await run_in_threadpool(self._change_format, file, format)
+
+    base_name = str(image_obj.filename).rsplit(".", 1)[0]
+    filename = f"converted_{base_name}.{format}"
+    generated_key = f"account/{image_obj.account_id}/images/{filename}"
+    content_type = f"image/{format.lower()}"
+
+    converted_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(converted_file.getvalue()), format)
+
+    saved_converted_image_obj = await self._try_save_image_obj(converted_image_obj)
+
+    await self._try_upload_to_s3(converted_file, generated_key, content_type, saved_converted_image_obj.id)
+
+    return saved_converted_image_obj
 
 
 
@@ -189,6 +212,21 @@ class ImageService:
       output = BytesIO()
 
       cropped_img.save(output, format=img.format)
+
+      output.seek(0)
+
+      return output
+
+  def _change_format(self, file: BinaryIO, format: ImageFormat) -> BytesIO:
+    with PILImage.open(file) as img:
+      orig_format = img.format
+
+      if orig_format == format:
+        raise ImageSameFormatException()
+
+      output = BytesIO()
+
+      img.save(output, format=format)
 
       output.seek(0)
 
