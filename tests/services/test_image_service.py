@@ -3,7 +3,8 @@ from io import BytesIO
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, DuplicateImageException, ImageNotFoundException, S3DownloadFailedException, ImageTooSmallException
+from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, DuplicateImageException, ImageNotFoundException, S3DownloadFailedException, ImageTooSmallException, ImageSameFormatException
+from app.schemas.image_schema import ImageFormat
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -280,3 +281,101 @@ async def test_crop_center_image_s3_upload_exception(image_obj, mock_image_db_re
 
   assert exc.value.status_code == S3UploadFailedException.status_code
   assert exc.value.detail == S3UploadFailedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_success(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_file_like):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.download_from_s3.return_value = mock_file_like
+
+  image_obj.file_format = ImageFormat.PNG
+
+  mock_image_db_repo.save.return_value = image_obj
+  mock_image_s3_repo.upload_to_s3.return_value = None
+
+  result = await image_service.change_image_format(image_obj.account_id, 1, ImageFormat.PNG)
+
+  assert result.file_format == ImageFormat.PNG
+  assert mock_image_db_repo.save.call_count == 1
+  assert mock_image_s3_repo.upload_to_s3.call_count == 1
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_image_not_found_exception(mock_image_db_repo, image_service):
+  mock_image_db_repo.get_by_id.side_effect = ImageNotFoundException()
+
+  with pytest.raises(ImageNotFoundException) as exc:
+    await image_service.change_image_format(1, 1, ImageFormat.JPEG)
+
+  assert exc.value.status_code == ImageNotFoundException.status_code
+  assert exc.value.detail == ImageNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_user_not_fount_exception(image_obj, mock_image_db_repo, image_service):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+
+  with pytest.raises(UserNotFoundException) as exc:
+    await image_service.change_image_format(22, 12, ImageFormat.PNG)
+
+  assert exc.value.status_code == UserNotFoundException.status_code
+  assert exc.value.detail == UserNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_s3_download_exception(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.download_from_s3.side_effect = S3DownloadFailedException()
+
+  with pytest.raises(S3DownloadFailedException) as exc:
+    await image_service.change_image_format(image_obj.account_id, 34, ImageFormat.WEBP)
+
+  assert exc.value.status_code == S3DownloadFailedException.status_code
+  assert exc.value.detail == S3DownloadFailedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_same_format_exception(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_file_like):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.download_from_s3.return_value = mock_file_like
+
+  with pytest.raises(ImageSameFormatException) as exc:
+    await image_service.change_image_format(image_obj.account_id, 1, ImageFormat.JPEG)
+
+  assert exc.value.status_code == ImageSameFormatException.status_code
+  assert exc.value.detail == ImageSameFormatException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_race_condition(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_file_like):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.download_from_s3.return_value = mock_file_like
+  mock_image_db_repo.save.side_effect = IntegrityError("stmt", "params", "s3_key")
+
+  with pytest.raises(DuplicateImageException) as exc:
+    await image_service.change_image_format(image_obj.account_id, 1, ImageFormat.WEBP)
+
+  assert exc.value.status_code == DuplicateImageException.status_code
+  assert exc.value.detail == DuplicateImageException.detail
+  assert mock_image_db_repo.save.call_count == 1
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_image_format_s3_upload_exception(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_file_like):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.download_from_s3.return_value = mock_file_like
+
+  image_obj.file_format = ImageFormat.PNG
+
+  mock_image_db_repo.save.return_value = image_obj
+  mock_image_s3_repo.upload_to_s3.side_effect = BotoCoreError()
+  mock_image_db_repo.delete.return_value = None
+
+  with pytest.raises(S3UploadFailedException) as exc:
+    await image_service.change_image_format(image_obj.account_id, 2, ImageFormat.PNG)
+
+  assert exc.value.status_code == S3UploadFailedException.status_code
+  assert exc.value.detail == S3UploadFailedException.detail
+  assert mock_image_db_repo.save.call_count == 1
+  assert mock_image_s3_repo.upload_to_s3.call_count == 1
+  assert mock_image_db_repo.delete.call_count == 1
