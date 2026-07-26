@@ -101,6 +101,13 @@ class ImageService:
 
     return saved_converted_image_obj
 
+  async def generate_image_url(self, account_id: int, image_id: int) -> str:
+    image_obj = await self._try_get_image_obj_by_id(image_id)
+
+    self._check_account_id(image_obj.account_id, account_id)
+
+    return self.s3_repo.generate_url(image_obj.s3_key)
+
 
 
   async def _try_upload_to_s3(self, file: BinaryIO, generated_key: str, content_type: str, image_id) -> None:
