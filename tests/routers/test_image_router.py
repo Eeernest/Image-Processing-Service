@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, ImageTooSmallException, InvalidImageFormatException, ImageNotFoundException, S3DownloadFailedException, S3UploadFailedException, DuplicateImageException, ImageSameFormatException
+from app.core.exceptions import MaxFileSizeExceededException, ImageResolutionException, ImageTooSmallException, ImageSameFormatException
 from app.schemas.image_schema import ImageFormat
 from tests.fixtures.image_fixture import integration_image_client
 
