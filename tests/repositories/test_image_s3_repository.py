@@ -32,3 +32,12 @@ async def test_download_from_s3(image_s3_repo, file_bytes, file_stream, key):
    result = await image_s3_repo.download_from_s3(key)
 
    assert result.read() == file_bytes
+
+@pytest.mark.integration
+def test_generate_url(image_s3_repo, key):
+  expected_bucket = os.environ["S3_BUCKET_NAME"]
+
+  result = image_s3_repo.generate_url(key)
+
+  assert expected_bucket in result
+  assert key in result
