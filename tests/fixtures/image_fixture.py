@@ -1,5 +1,5 @@
 from io import BytesIO
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 from fastapi import UploadFile
 from httpx import AsyncClient, ASGITransport
@@ -54,7 +54,10 @@ def mock_image_db_repo():
 
 @pytest.fixture()
 def mock_image_s3_repo():
-  return AsyncMock()
+  mock = AsyncMock()
+  mock.generate_url = Mock()
+
+  return mock
 
 @pytest.fixture()
 def image_service(mock_image_db_repo, mock_image_s3_repo):
@@ -103,6 +106,10 @@ def mock_invalid_file():
   file.file = BytesIO(real_image_bytes)
 
   return file
+
+@pytest.fixture()
+def mock_image_url():
+  return "mock_image_url"
 
 @pytest.fixture()
 def integration_image_service(image_db_repo, image_s3_repo):

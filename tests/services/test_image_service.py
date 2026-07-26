@@ -379,3 +379,35 @@ async def test_change_image_format_s3_upload_exception(image_obj, mock_image_db_
   assert mock_image_db_repo.save.call_count == 1
   assert mock_image_s3_repo.upload_to_s3.call_count == 1
   assert mock_image_db_repo.delete.call_count == 1
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_generate_image_url(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_image_url):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.generate_url.return_value = mock_image_url
+
+  result = await image_service.generate_image_url(image_obj.account_id, 1)
+
+  assert result == mock_image_url
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_generate_image_url_image_not_found_exception(mock_image_db_repo, image_service):
+  mock_image_db_repo.get_by_id.side_effect = ImageNotFoundException
+
+  with pytest.raises(ImageNotFoundException) as exc:
+    await image_service.generate_image_url(1, 1)
+
+  assert exc.value.status_code == ImageNotFoundException.status_code
+  assert exc.value.detail == ImageNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_generate_image_url_user_not_found_exception(image_obj, mock_image_db_repo, image_service):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+
+  with pytest.raises(UserNotFoundException) as exc:
+    await image_service.generate_image_url(12, 3)
+
+  assert exc.value.status_code == UserNotFoundException.status_code
+  assert exc.value.detail == UserNotFoundException.detail
