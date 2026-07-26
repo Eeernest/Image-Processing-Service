@@ -106,17 +106,17 @@ def mock_invalid_file():
   return file
 
 @pytest.fixture()
-def mock_image_service():
-  return AsyncMock()
+def integration_image_service(image_db_repo, image_s3_repo):
+  return ImageService(image_db_repo, image_s3_repo)
 
 @pytest.fixture()
-def mock_image_current_user():
-  return AsyncMock()
+def integration_image_current_user(saved_account_obj):
+  return saved_account_obj
 
 @pytest.fixture()
-async def unit_image_client(mock_image_service, mock_image_current_user):
-  app.dependency_overrides[get_image_service] = lambda: mock_image_service
-  app.dependency_overrides[get_current_user] = lambda: mock_image_current_user
+async def integration_image_client(integration_image_service, integration_image_current_user):
+  app.dependency_overrides[get_image_service] = lambda: integration_image_service
+  app.dependency_overrides[get_current_user] = lambda: integration_image_current_user
 
   async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
     yield c
@@ -124,25 +124,27 @@ async def unit_image_client(mock_image_service, mock_image_current_user):
   app.dependency_overrides.clear()
 
 @pytest.fixture()
-def upload_file_payload():
-  return {"file": ("test.jpeg", b"data", "image/jpeg")}
+def sample_file_bytes():
+  buffer = BytesIO()
+
+  img = PILImage.new("RGB", (200, 100), color="blue")
+  img.save(buffer, format="JPEG")
+
+  buffer.seek(0)
+
+  return buffer.getvalue()
 
 @pytest.fixture()
-def resize_file_params():
-  return {
-    "width": 10,
-    "height": 14
-  }
+def sample_file_bytes_resolution():
+  buffer = BytesIO()
+
+  img = PILImage.new("RGB", (50001, 100), color="blue")
+  img.save(buffer, format="JPEG")
+
+  buffer.seek(0)
+
+  return buffer.getvalue()
 
 @pytest.fixture()
-def crop_center_params():
-  return {
-    "width": 20,
-    "height": 20
-  }
-
-@pytest.fixture()
-def change_format_params():
-  return {
-    "format": ImageFormat.WEBP.value
-  }
+async def uploaded_image(integration_image_client, sample_file_bytes):
+  return await integration_image_client.post("/upload_image", files={"file": ("test.jpeg", sample_file_bytes, "image/jpeg")})
