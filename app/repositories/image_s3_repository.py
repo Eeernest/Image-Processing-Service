@@ -1,4 +1,4 @@
-import io
+from io import BytesIO
 from typing import BinaryIO
 
 from botocore.exceptions import ClientError, BotoCoreError
@@ -31,8 +31,8 @@ class ImageS3Repository:
       Key=key
     )
 
-  async def download_from_s3(self, key: str) -> io.BytesIO:
-    buffer = io.BytesIO()
+  async def download_from_s3(self, key: str) -> BytesIO:
+    buffer = BytesIO()
 
     try:
       await run_in_threadpool(
@@ -48,3 +48,10 @@ class ImageS3Repository:
 
     except (ClientError, BotoCoreError) as exc:
       raise exc
+
+  def generate_url(self, key: str) -> str:
+    return self.s3_client.generate_presigned_url(
+      ClientMethod="get_object",
+      Params={"Bucket": settings.S3_BUCKET_NAME, "Key": key},
+      ExpiresIn=settings.S3_EXPIRES_IN
+    )
