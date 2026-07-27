@@ -123,6 +123,8 @@ class ImageService:
       return await self.db_repo.save(image_obj)
 
     except IntegrityError:
+      await self.s3_repo.delete_from_s3(image_obj.s3_key)
+
       raise DuplicateImageException()
 
   async def _try_get_image_obj_by_id(self, image_id: int) -> Image:
