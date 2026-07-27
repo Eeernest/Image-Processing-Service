@@ -31,11 +31,9 @@ class ImageService:
 
     image_obj = self._create_image_obj(account_id, filename, generated_key, file_size_bytes, detected_format)
 
-    saved_image_obj = await self._try_save_image_obj(image_obj)
+    await self._try_upload_to_s3(file.file, generated_key, content_type)
 
-    await self._try_upload_to_s3(file.file, generated_key, content_type, saved_image_obj.id)
-
-    return saved_image_obj
+    return await self._try_save_image_obj(image_obj)
 
   async def resize_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
     image_obj = await self._try_get_image_obj_by_id(image_id)
@@ -52,11 +50,9 @@ class ImageService:
 
     resized_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(resized_file.getvalue()), image_obj.file_format)
 
-    saved_resized_image_obj = await self._try_save_image_obj(resized_image_obj)
+    await self._try_upload_to_s3(resized_file, generated_key, content_type)
 
-    await self._try_upload_to_s3(resized_file, generated_key, content_type, saved_resized_image_obj.id)
-
-    return saved_resized_image_obj
+    return await self._try_save_image_obj(resized_image_obj)
 
   async def crop_center_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
     image_obj = await self._try_get_image_obj_by_id(image_id)
@@ -73,11 +69,9 @@ class ImageService:
 
     cropped_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(cropped_file.getvalue()), image_obj.file_format)
 
-    saved_cropped_image_obj = await self._try_save_image_obj(cropped_image_obj)
+    await self._try_upload_to_s3(cropped_file, generated_key, content_type)
 
-    await self._try_upload_to_s3(cropped_file, generated_key, content_type, saved_cropped_image_obj.id)
-
-    return saved_cropped_image_obj
+    return await self._try_save_image_obj(cropped_image_obj)
 
   async def change_image_format(self, account_id: int, image_id: int, format: ImageFormat) -> Image:
     image_obj = await self._try_get_image_obj_by_id(image_id)
@@ -95,11 +89,9 @@ class ImageService:
 
     converted_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(converted_file.getvalue()), format)
 
-    saved_converted_image_obj = await self._try_save_image_obj(converted_image_obj)
+    await self._try_upload_to_s3(converted_file, generated_key, content_type)
 
-    await self._try_upload_to_s3(converted_file, generated_key, content_type, saved_converted_image_obj.id)
-
-    return saved_converted_image_obj
+    return await self._try_save_image_obj(converted_image_obj)
 
   async def generate_image_url(self, account_id: int, image_id: int) -> str:
     image_obj = await self._try_get_image_obj_by_id(image_id)
@@ -110,13 +102,11 @@ class ImageService:
 
 
 
-  async def _try_upload_to_s3(self, file: BinaryIO, generated_key: str, content_type: str, image_id) -> None:
+  async def _try_upload_to_s3(self, file: BinaryIO, generated_key: str, content_type: str) -> None:
     try:
       return await self.s3_repo.upload_to_s3(file, generated_key, content_type)
 
     except (ClientError, BotoCoreError):
-      await self.db_repo.delete(image_id)
-
       raise S3UploadFailedException()
 
   async def _try_download_from_s3(self, s3_key: str) -> BytesIO:
