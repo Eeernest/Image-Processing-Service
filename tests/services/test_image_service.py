@@ -80,14 +80,19 @@ async def test_upload_image_botocore_error(mock_image_s3_repo, image_service, mo
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_upload_image_race_condition(mock_image_db_repo, image_service, mock_file):
+async def test_upload_image_race_condition(mock_image_db_repo, mock_image_s3_repo, image_service, mock_file):
+  mock_image_s3_repo.uplaod_to_s3.return_value = None
   mock_image_db_repo.save.side_effect = IntegrityError("stmt", "params", "s3_key")
+  mock_image_s3_repo.delete_from_s3.return_value = None
 
   with pytest.raises(DuplicateImageException) as exc:
     await image_service.upload_image(1, mock_file)
 
   assert exc.value.status_code == DuplicateImageException.status_code
   assert exc.value.detail == DuplicateImageException.detail
+  assert mock_image_s3_repo.upload_to_s3.call_count == 1
+  assert mock_image_db_repo.save.call_count == 1
+  assert mock_image_s3_repo.delete_from_s3.call_count == 1
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -175,6 +180,7 @@ async def test_resize_image_race_condition(image_obj, mock_image_db_repo, mock_i
   mock_image_s3_repo.download_from_s3.return_value = mock_file_like
   mock_image_s3_repo.upload_to_s3.return_value = None
   mock_image_db_repo.save.side_effect = IntegrityError("stmt", "params", "s3_key")
+  mock_image_s3_repo.delete_from_s3.return_value = None
 
   with pytest.raises(DuplicateImageException) as exc:
     await image_service.resize_image(image_obj.account_id, 1, 11, 12)
@@ -183,6 +189,7 @@ async def test_resize_image_race_condition(image_obj, mock_image_db_repo, mock_i
   assert exc.value.detail == DuplicateImageException.detail
   assert mock_image_s3_repo.upload_to_s3.call_count == 1
   assert mock_image_db_repo.save.call_count == 1
+  assert mock_image_s3_repo.delete_from_s3.call_count == 1
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -267,6 +274,7 @@ async def test_crop_center_image_race_condition(image_obj, mock_image_db_repo, m
   mock_image_s3_repo.download_from_s3.return_value = mock_file_like
   mock_image_s3_repo.upload_to_s3.return_value = None
   mock_image_db_repo.save.side_effect = IntegrityError("stmt", "params", "s3_key")
+  mock_image_s3_repo.delete_from_s3.return_value = None
 
   with pytest.raises(DuplicateImageException) as exc:
     await image_service.crop_center_image(image_obj.account_id, 1, 34, 12)
@@ -275,6 +283,7 @@ async def test_crop_center_image_race_condition(image_obj, mock_image_db_repo, m
   assert exc.value.detail == DuplicateImageException.detail
   assert mock_image_s3_repo.upload_to_s3.call_count == 1
   assert mock_image_db_repo.save.call_count == 1
+  assert mock_image_s3_repo.delete_from_s3.call_count == 1
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -360,6 +369,7 @@ async def test_change_image_format_race_condition(image_obj, mock_image_db_repo,
   mock_image_s3_repo.download_from_s3.return_value = mock_file_like
   mock_image_s3_repo.upload_to_s3.return_value = None
   mock_image_db_repo.save.side_effect = IntegrityError("stmt", "params", "s3_key")
+  mock_image_s3_repo.delete_from_s3.return_value = None
 
   with pytest.raises(DuplicateImageException) as exc:
     await image_service.change_image_format(image_obj.account_id, 1, ImageFormat.WEBP)
@@ -368,6 +378,7 @@ async def test_change_image_format_race_condition(image_obj, mock_image_db_repo,
   assert exc.value.detail == DuplicateImageException.detail
   assert mock_image_s3_repo.upload_to_s3.call_count == 1
   assert mock_image_db_repo.save.call_count == 1
+  assert mock_image_s3_repo.delete_from_s3.call_count == 1
 
 
 @pytest.mark.anyio
