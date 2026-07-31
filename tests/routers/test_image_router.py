@@ -78,7 +78,7 @@ async def test_change_image_format_success(integration_image_client, uploaded_im
   assert result.status_code == 200
 
 @pytest.mark.anyio
-@pytest.mark.unit
+@pytest.mark.integration
 async def test_change_image_format_same_format_exception(integration_image_client, uploaded_image):
   image_data = uploaded_image.json()
 
@@ -87,3 +87,12 @@ async def test_change_image_format_same_format_exception(integration_image_clien
 
   assert result.status_code == e.ImageSameFormatException.status_code
   assert data["detail"] == e.ImageSameFormatException.detail
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_generate_image_url_success(integration_image_client, uploaded_image):
+  image_data = uploaded_image.json()
+
+  result = await integration_image_client.get(f"/generate_image_url/{image_data["id"]}")
+
+  assert result.status_code == 200
