@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile
 
 from app.dependencies.permit_dependency import CurrentUserDep
 from app.dependencies.image_dependency import ImageServiceDep
-from app.schemas.image_schema import ImageRead, ImageFormat
+from app.schemas.image_schema import ImageRead, ImageUrlRead, ImageFormat
 
 router = APIRouter()
 
@@ -21,3 +21,9 @@ async def crop_center_image(user: CurrentUserDep, service: ImageServiceDep, imag
 @router.get("/change_image_format/{image_id}", response_model=ImageRead)
 async def change_image_format(user: CurrentUserDep, service: ImageServiceDep, image_id: int, format: ImageFormat):
   return await service.change_image_format(user.id, image_id, format)
+
+@router.get("/generate_image_url/{image_id}", response_model=ImageUrlRead)
+async def generate_image_url(user:CurrentUserDep, service: ImageServiceDep, image_id: int):
+  image_url = await service.generate_image_url(user.id, image_id)
+
+  return ImageUrlRead(image_url=image_url)
