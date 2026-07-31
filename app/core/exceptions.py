@@ -62,6 +62,10 @@ class S3DownloadFailedException(AppBaseException):
   status_code = 503
   detail = "Failed to download image from storage"
 
+class S3NoCredentialsException(AppBaseException):
+  status_code = 500
+  detail = "Failed to generate image url"
+
 class DuplicateImageException(AppBaseException):
   status_code = 409
   detail = "Image with the same key is already uploaded"
