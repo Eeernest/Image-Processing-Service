@@ -1,5 +1,6 @@
 from io import BytesIO
 from typing import BinaryIO
+import uuid
 
 from botocore.exceptions import ClientError, BotoCoreError
 from fastapi import UploadFile
@@ -25,7 +26,7 @@ class ImageService:
     content_type = file.content_type
 
     detected_format = await run_in_threadpool(self._validate_image, file.file)
-    generated_key = f"account/{account_id}/images/{filename}"
+    generated_key = f"account/{account_id}/images/_{uuid.uuid4()}_{filename}"
 
     file.file.seek(0)
 
@@ -45,7 +46,7 @@ class ImageService:
     resized_file = await run_in_threadpool(self._resize, file, width, height)
 
     filename = f"resized_{width}x{height}_{image_obj.filename}"
-    generated_key = f"account/{image_obj.account_id}/images/{filename}"
+    generated_key = f"account/{image_obj.account_id}/images/_{uuid.uuid4()}_{filename}"
     content_type = f"image/{str(image_obj.file_format).lower()}"
 
     resized_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(resized_file.getvalue()), image_obj.file_format)
@@ -63,8 +64,8 @@ class ImageService:
 
     cropped_file = await run_in_threadpool(self._crop_center, file, width, height)
 
-    filename = f"cropped_{width}x{height}_{image_obj.filename}"
-    generated_key = f"account/{image_obj.account_id}/images/{filename}"
+    filename = f"cropped_{width}x{height}{image_obj.filename}"
+    generated_key = f"account/{image_obj.account_id}/images/_{uuid.uuid4()}_{filename}"
     content_type = f"image/{str(image_obj.file_format).lower()}"
 
     cropped_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(cropped_file.getvalue()), image_obj.file_format)
@@ -84,7 +85,7 @@ class ImageService:
 
     base_name = str(image_obj.filename).rsplit(".", 1)[0]
     filename = f"converted_{base_name}.{format.value.lower()}"
-    generated_key = f"account/{image_obj.account_id}/images/{filename}"
+    generated_key = f"account/{image_obj.account_id}/images/_{uuid.uuid4()}_{filename}"
     content_type = f"image/{format.lower()}"
 
     converted_image_obj = self._create_image_obj(image_obj.account_id, filename, generated_key, len(converted_file.getvalue()), format)
