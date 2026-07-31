@@ -12,6 +12,8 @@ class ImageS3Repository:
     self.s3_client = s3_client
 
   async def upload_to_s3(self, file: BinaryIO, key: str, content_type: str | None = None) -> None:
+    file.seek(0)
+
     try:
       await run_in_threadpool(
         self.s3_client.upload_fileobj,
