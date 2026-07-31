@@ -35,7 +35,7 @@ class Config(BaseSettings):
 
   S3_ENDPOINT_URL: str | None = None
 
-  S3_EXPIRES_IN: int = 3600
+  S3_EXPIRES_IN: int = 300
 
   model_config = SettingsConfigDict(
     env_file=".env",
