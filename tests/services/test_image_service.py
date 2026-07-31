@@ -1,4 +1,4 @@
-from botocore.exceptions import ClientError, BotoCoreError
+from botocore.exceptions import ClientError, BotoCoreError, NoCredentialsError
 from io import BytesIO
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -383,7 +383,7 @@ async def test_change_image_format_race_condition(image_obj, mock_image_db_repo,
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_generate_image_url(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_image_url):
+async def test_generate_image_url_success(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service, mock_image_url):
   mock_image_db_repo.get_by_id.return_value = image_obj
   mock_image_s3_repo.generate_url.return_value = mock_image_url
 
@@ -412,3 +412,15 @@ async def test_generate_image_url_user_not_found_exception(image_obj, mock_image
 
   assert exc.value.status_code == e.UserNotFoundException.status_code
   assert exc.value.detail == e.UserNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_generate_image_url_no_credentials_exceptions(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service):
+  mock_image_db_repo.get_by_id.return_value = image_obj
+  mock_image_s3_repo.generate_url.side_effect = NoCredentialsError()
+
+  with pytest.raises(e.S3NoCredentialsException) as exc:
+    await image_service.generate_image_url(image_obj.account_id, 34)
+
+  assert exc.value.status_code == e.S3NoCredentialsException.status_code
+  assert exc.value.detail == e.S3NoCredentialsException.detail
