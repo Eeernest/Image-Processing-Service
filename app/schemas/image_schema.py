@@ -11,6 +11,9 @@ class ImageRead(ImageBase):
 
   model_config = ConfigDict(from_attributes=True)
 
+class ImageUrlRead(BaseModel):
+  image_url: str
+
 class ImageFormat(str, Enum):
   PNG = "PNG"
   JPEG = "JPEG"
