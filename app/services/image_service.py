@@ -2,7 +2,7 @@ from io import BytesIO
 from typing import BinaryIO
 import uuid
 
-from botocore.exceptions import ClientError, BotoCoreError
+from botocore.exceptions import ClientError, BotoCoreError, NoCredentialsError
 from fastapi import UploadFile
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image as PILImage, UnidentifiedImageError
@@ -99,7 +99,7 @@ class ImageService:
 
     self._check_account_id(image_obj.account_id, account_id)
 
-    return self.s3_repo.generate_url(image_obj.s3_key)
+    return self._try_generate_url(image_obj.s3_key)
 
 
 
@@ -116,6 +116,13 @@ class ImageService:
 
     except (ClientError, BotoCoreError):
       raise e.S3DownloadFailedException()
+
+  def _try_generate_url(self, generated_key: str) -> str:
+    try:
+      return self.s3_repo.generate_url(generated_key)
+
+    except NoCredentialsError:
+      raise e.S3NoCredentialsException
 
   
 
@@ -136,7 +143,8 @@ class ImageService:
 
     return image_obj
 
-  
+
+
   def _check_account_id(self, image_obj_account_id: int, account_id: int) -> None:
     if image_obj_account_id != account_id:
       raise e.UserNotFoundException()
