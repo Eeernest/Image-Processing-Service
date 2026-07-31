@@ -14,17 +14,13 @@ class ImageS3Repository:
   async def upload_to_s3(self, file: BinaryIO, key: str, content_type: str | None = None) -> None:
     file.seek(0)
 
-    try:
-      await run_in_threadpool(
-        self.s3_client.upload_fileobj,
-        file,
-        settings.S3_BUCKET_NAME,
-        key,
-        ExtraArgs={"ContentType": content_type}
-      )
-
-    except (ClientError, BotoCoreError) as exc:
-      raise exc
+    await run_in_threadpool(
+      self.s3_client.upload_fileobj,
+      file,
+      settings.S3_BUCKET_NAME,
+      key,
+      ExtraArgs={"ContentType": content_type}
+    )
 
   async def delete_from_s3(self, key: str) -> None:
     await run_in_threadpool(
@@ -36,20 +32,16 @@ class ImageS3Repository:
   async def download_from_s3(self, key: str) -> BytesIO:
     buffer = BytesIO()
 
-    try:
-      await run_in_threadpool(
-        self.s3_client.download_fileobj,
-        settings.S3_BUCKET_NAME,
-        key,
-        buffer
-      )
+    await run_in_threadpool(
+      self.s3_client.download_fileobj,
+      settings.S3_BUCKET_NAME,
+      key,
+      buffer
+    )
 
-      buffer.seek(0)
+    buffer.seek(0)
 
-      return buffer
-
-    except (ClientError, BotoCoreError) as exc:
-      raise exc
+    return buffer
 
   def generate_url(self, key: str) -> str:
     return self.s3_client.generate_presigned_url(
