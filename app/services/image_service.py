@@ -9,7 +9,7 @@ from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
-from app.core.exceptions import UserNotFoundException, MaxFileSizeExceededException, ImageResolutionException, InvalidImageFormatException, S3UploadFailedException, S3DownloadFailedException, DuplicateImageException, ImageNotFoundException, ImageTooSmallException, ImageSameFormatException
+import app.core.exceptions as e
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
 from app.repositories.image_s3_repository import ImageS3Repository
@@ -108,14 +108,14 @@ class ImageService:
       return await self.s3_repo.upload_to_s3(file, generated_key, content_type)
 
     except (ClientError, BotoCoreError):
-      raise S3UploadFailedException()
+      raise e.S3UploadFailedException()
 
   async def _try_download_from_s3(self, s3_key: str) -> BytesIO:
     try:
       return await self.s3_repo.download_from_s3(s3_key)
 
     except (ClientError, BotoCoreError):
-      raise S3DownloadFailedException()
+      raise e.S3DownloadFailedException()
 
   
 
@@ -126,20 +126,20 @@ class ImageService:
     except IntegrityError:
       await self.s3_repo.delete_from_s3(image_obj.s3_key)
 
-      raise DuplicateImageException()
+      raise e.DuplicateImageException()
 
   async def _try_get_image_obj_by_id(self, image_id: int) -> Image:
     image_obj = await self.db_repo.get_by_id(image_id)
 
     if image_obj is None:
-      raise ImageNotFoundException()
+      raise e.ImageNotFoundException()
 
     return image_obj
 
   
   def _check_account_id(self, image_obj_account_id: int, account_id: int) -> None:
     if image_obj_account_id != account_id:
-      raise UserNotFoundException()
+      raise e.UserNotFoundException()
 
   def _create_image_obj(self, account_id: int, filename: str, s3_key: str, file_size_bytes: int, file_format: str) -> Image:
     return Image(
@@ -156,11 +156,11 @@ class ImageService:
     max_file_size = settings.MAX_FILE_SIZE
 
     if file_size > max_file_size:
-      raise MaxFileSizeExceededException()
+      raise e.MaxFileSizeExceededException()
 
     return file_size
   
-  def _validate_image(self, file) -> str:
+  def _validate_image(self, file: BinaryIO) -> str:
     try:
       with PILImage.open(file) as img:
         allowed_image_formats = settings.ALLOWED_IMAGE_FOMRAT
@@ -168,22 +168,22 @@ class ImageService:
         width, height = img.size
 
         if img.format.upper() not in allowed_image_formats:
-          raise InvalidImageFormatException()
+          raise e.InvalidImageFormatException()
 
         if width > settings.MAX_IMAGE_WIDTH or height > settings.MAX_IMAGE_HEIGHT:
-          raise ImageResolutionException()
+          raise e.ImageResolutionException()
 
         return img.format.upper()
 
     except UnidentifiedImageError:
-      raise InvalidImageFormatException()
+      raise e.InvalidImageFormatException()
 
   def _resize(self, file: BinaryIO, width: int, height: int) -> BytesIO:
     with PILImage.open(file) as img:
       orig_width, orig_height = img.size
 
       if orig_width < width or orig_height < height:
-        raise ImageTooSmallException()
+        raise e.ImageTooSmallException()
 
       img.thumbnail((width, height), PILImage.Resampling.LANCZOS)
 
@@ -200,7 +200,7 @@ class ImageService:
       orig_width, orig_height = img.size
 
       if orig_width < width or orig_height < height:
-        raise ImageTooSmallException()
+        raise e.ImageTooSmallException()
 
       left = (orig_width - width) // 2
       top = (orig_height - height) // 2
@@ -222,7 +222,7 @@ class ImageService:
       orig_format = img.format
 
       if orig_format == format:
-        raise ImageSameFormatException()
+        raise e.ImageSameFormatException()
 
       output = BytesIO()
 
