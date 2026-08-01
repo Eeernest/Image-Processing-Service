@@ -37,6 +37,8 @@ class Config(BaseSettings):
 
   S3_EXPIRES_IN: int = 300
 
+  REDIS_URL: str = "redis_url"
+
   model_config = SettingsConfigDict(
     env_file=".env",
     extra="ignore",
