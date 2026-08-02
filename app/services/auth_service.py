@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from app.core.config import settings
 from app.core.exceptions import InvalidCredentialsException
@@ -11,6 +11,20 @@ class AuthService:
   def __init__(self, security: Security, db_repo: AccountDbRepository):
     self.security = security
     self.db_repo = db_repo
+  
+  async def login(self, username: str, password: str) -> TokenBase:
+    account_obj = await self._authenticate_user(username, password)
+
+    if account_obj is None:
+      raise InvalidCredentialsException()
+
+    access_token = self._get_access_token(account_obj.id, account_obj.user_role)
+    refresh_token = self._get_refresh_token(account_obj.id)
+
+    return TokenBase(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
+
+
+
 
   async def _authenticate_user(self, username: str, password: str) -> Account | None:
     account_obj = await self.db_repo.get_by_username(username)
@@ -26,37 +40,22 @@ class AuthService:
       return None
     
     return account_obj
-  
-  def _create_access_token(self, data: dict, expires_delta: timedelta | None = None) -> str:
-    to_encode = data.copy()
 
-    if expires_delta is not None:
-      expire = datetime.now(timezone.utc) + expires_delta
+  def _get_access_token(self, account_id: int, account_role: str) -> str:
+    account_data = {
+      "sub": str(account_id),
+      "role": account_role
+    }
 
-    if expires_delta is None:
-      expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    expires_delta_minutes = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({"exp": expire})
+    return self.security.create_access_token(account_data, expires_delta_minutes)
 
-    encoded_jwt = self.security.encode_jwt(
-      to_encode=to_encode,
-      secret_key=settings.SECRET_KEY,
-      algorithm=settings.ALGORITHM
-    )
+  def _get_refresh_token(self, account_id: int) -> str:
+    account_data = {
+      "sub": str(account_id)
+    }
 
-    return encoded_jwt
-  
-  async def login(self, username: str, password: str) -> TokenBase:
-    account_obj = await self._authenticate_user(username, password)
+    expires_delta_days = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-    if account_obj is None:
-      raise InvalidCredentialsException()
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    access_token = self._create_access_token(
-      data={"sub": str(account_obj.id), "role": account_obj.user_role},
-      expires_delta=access_token_expires
-    )
-
-    return TokenBase(access_token=access_token, token_type="bearer")
+    return self.security.create_refresh_token(account_data, expires_delta_days)
