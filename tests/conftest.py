@@ -14,9 +14,11 @@ os.environ["AWS_DEFAULT_REGION"] = "eu-north-1"
 import boto3
 from moto import mock_aws
 import pytest
+from redis.asyncio import Redis
 from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
 
 from app.db.database import Base
 from app.models.account_model import Account
@@ -25,6 +27,7 @@ from app.models.image_model import Image
 pytest_plugins = [
   "anyio",
   "tests.fixtures.account_fixture",
+  "tests.fixtures.token_fixture",
   "tests.fixtures.auth_fixture",
   "tests.fixtures.permit_fixture",
   "tests.fixtures.image_fixture",
@@ -33,6 +36,23 @@ pytest_plugins = [
 @pytest.fixture(scope="session")
 def anyio_backend():
   return "asyncio"
+
+@pytest.fixture(scope="session")
+async def redis_container():
+  with RedisContainer("redis:7") as rdc:
+    host = rdc.get_container_host_ip()
+    port = rdc.get_exposed_port(6379)
+
+    client = Redis(
+      host=host,
+      port=port,
+      decode_responses=True
+    )
+
+    yield client
+
+    await client.flushall()
+    await client.aclose()
 
 @pytest.fixture(scope="session")
 def postgres_container():
