@@ -1,27 +1,37 @@
 from datetime import timedelta
+import uuid
+
+from redis.exceptions import RedisError
 
 from app.core.config import settings
-from app.core.exceptions import InvalidCredentialsException
+import app.core.exceptions as e
 from app.core.security import Security
 from app.models.account_model import Account
 from app.repositories.account_db_repository import AccountDbRepository
+from app.repositories.token_redis_repository import TokenRedisRepository
 from app.schemas.token_schema import TokenBase
 
 class AuthService:
-  def __init__(self, security: Security, db_repo: AccountDbRepository):
+  def __init__(self, security: Security, db_repo: AccountDbRepository, redis_repo: TokenRedisRepository):
     self.security = security
     self.db_repo = db_repo
+    self.redis_repo = redis_repo
   
   async def login(self, username: str, password: str) -> TokenBase:
     account_obj = await self._authenticate_user(username, password)
 
     if account_obj is None:
-      raise InvalidCredentialsException()
+      raise e.InvalidCredentialsException()
 
-    access_token = self._get_access_token(account_obj.id, account_obj.user_role)
-    refresh_token = self._get_refresh_token(account_obj.id)
+    access_token_data = self._get_access_token_data(account_obj.id, account_obj.user_role)
+    refresh_token_data = self._get_refresh_token_data(account_obj.id)
 
-    return TokenBase(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
+    encoded_access_token = self._get_access_token(access_token_data)
+    encoded_refresh_token = self._get_refresh_token(refresh_token_data)
+
+    await self._try_store_refresh_token(refresh_token_data["jti"], settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400, refresh_token_data["sub"])
+
+    return TokenBase(access_token=encoded_access_token, refresh_token=encoded_refresh_token, token_type="bearer")
 
 
 
@@ -40,22 +50,40 @@ class AuthService:
       return None
     
     return account_obj
+  
 
-  def _get_access_token(self, account_id: int, account_role: str) -> str:
-    account_data = {
+
+  def _get_access_token_data(self, account_id: int, account_role: str) -> dict:
+    return {
       "sub": str(account_id),
-      "role": account_role
+      "role": account_role,
+      "jti": str(uuid.uuid4())
     }
+
+  def _get_refresh_token_data(self, account_id: int) -> dict:
+    return {
+      "sub": str(account_id),
+      "jti": str(uuid.uuid4())
+    }
+
+
+
+  def _get_access_token(self, account_token_data: dict) -> str:
 
     expires_delta_minutes = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    return self.security.create_access_token(account_data, expires_delta_minutes)
+    return self.security.create_access_token(account_token_data, expires_delta_minutes)
 
-  def _get_refresh_token(self, account_id: int) -> str:
-    account_data = {
-      "sub": str(account_id)
-    }
-
+  def _get_refresh_token(self, refresh_token_data: dict) -> str:
     expires_delta_days = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-    return self.security.create_refresh_token(account_data, expires_delta_days)
+    return self.security.create_refresh_token(refresh_token_data, expires_delta_days)
+
+
+
+  async def _try_store_refresh_token(self, jti: str, expires_delta_seconds: int, sub: str) -> None:
+    try:
+      await self.redis_repo.store_refresh_token(jti, expires_delta_seconds, sub)
+
+    except RedisError:
+      raise e.RedisFailureException()
