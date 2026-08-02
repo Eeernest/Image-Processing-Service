@@ -26,6 +26,10 @@ class InvalidCredentialsException(AppBaseException):
   status_code = 401
   detail = "Incorrect username or password"
 
+class TokenExpiredException(AppBaseException):
+  status_code = 401
+  detail = "Token expired. Log in again"
+
 class RedisFailureException(AppBaseException):
   status_code = 503
   detail = "Redis operation failed"
