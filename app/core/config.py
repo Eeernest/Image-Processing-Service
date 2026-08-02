@@ -23,7 +23,9 @@ class Config(BaseSettings):
 
   ALGORITHM: str = "algorithm"
 
-  ACCESS_TOKEN_EXPIRE_MINUTES: int = 0
+  ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+
+  REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
   S3_BUCKET_NAME: str = "s3_bucket_name"
 
