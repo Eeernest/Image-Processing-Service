@@ -22,10 +22,10 @@ class Security:
 
   def create_access_token(self, account_data: dict, expires_delta: timedelta | None = None) -> str:
     payload = {
-      "sub": account_data.get("sub"),
-      "role": account_data.get("role"),
+      "sub": account_data["sub"],
+      "role": account_data["role"],
       "exp": self._get_exp_minutes(expires_delta),
-      "jti": str(uuid.uuid4()),
+      "jti": account_data["jti"],
       "refresh": False
     }
 
@@ -35,9 +35,9 @@ class Security:
 
   def create_refresh_token(self, account_data: dict, expires_delta: timedelta | None = None) -> str:
       payload = {
-        "sub": account_data.get("sub"),
+        "sub": account_data["sub"],
         "exp": self._get_exp_days(expires_delta),
-        "jti": str(uuid.uuid4()),
+        "jti": account_data["jti"],
         "refresh": True
       }
   
