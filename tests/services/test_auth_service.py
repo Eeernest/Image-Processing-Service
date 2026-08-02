@@ -7,11 +7,13 @@ from app.core.exceptions import InvalidCredentialsException
 async def test_login_success(mock_auth_security, mock_auth_db_repo, auth_service, auth_account_obj):
   mock_auth_db_repo.get_by_username.return_value = auth_account_obj
   mock_auth_security.verify_password.return_value = True
-  mock_auth_security.encode_jwt.return_value = "jwt_token"
+  mock_auth_security.create_access_token.return_value = "fake_access_token"
+  mock_auth_security.create_refresh_token.return_value = "fake_refresh_token"
 
   result = await auth_service.login(auth_account_obj.username, "Password123")
 
-  assert result.access_token == "jwt_token"
+  assert result.access_token == "fake_access_token"
+  assert result.refresh_token == "fake_refresh_token"
   assert result.token_type == "bearer"
 
 @pytest.mark.anyio
