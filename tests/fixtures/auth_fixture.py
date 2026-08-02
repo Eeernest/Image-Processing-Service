@@ -23,8 +23,12 @@ def mock_auth_db_repo():
   return AsyncMock()
 
 @pytest.fixture()
-def auth_service(mock_auth_security, mock_auth_db_repo):
-  return AuthService(mock_auth_security, mock_auth_db_repo)
+def mock_auth_redis_repo():
+  return AsyncMock()
+
+@pytest.fixture()
+def auth_service(mock_auth_security, mock_auth_db_repo, mock_auth_redis_repo):
+  return AuthService(mock_auth_security, mock_auth_db_repo, mock_auth_redis_repo)
 
 @pytest.fixture()
 def auth_account_obj():
