@@ -46,13 +46,8 @@ class Security:
       return token
 
   def decode_jwt(self, token: str) -> dict:
-    try:
       return jwt.decode(token, settings.SECRET_KEY, settings.ALGORITHM)
 
-    # lateron delete this try except and do it in service
-
-    except jwt.PyJWTError as exc:
-      raise exc
 
 
   def _get_exp_minutes(self, expires_delta: timedelta | None) -> datetime:
