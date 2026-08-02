@@ -26,6 +26,10 @@ class InvalidCredentialsException(AppBaseException):
   status_code = 401
   detail = "Incorrect username or password"
 
+class RedisFailureException(AppBaseException):
+  status_code = 503
+  detail = "Redis operation failed"
+
 class InvalidTokenException(AppBaseException):
   status_code = 401
   detail = "Could not validate credentials"
