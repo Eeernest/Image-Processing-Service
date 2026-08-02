@@ -12,6 +12,7 @@ async def test_login_success(mock_auth_service, unit_auth_client, auth_account_p
 
   assert result.status_code == 200
   assert data["access_token"] == token.access_token
+  assert data["refresh_token"] == token.refresh_token
   assert data["token_type"] == token.token_type
 
 @pytest.mark.anyio

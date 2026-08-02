@@ -12,6 +12,8 @@ from app.services.auth_service import AuthService
 @pytest.fixture()
 def mock_auth_security():
   mock = AsyncMock()
+  mock.create_access_token = Mock()
+  mock.create_refresh_token = Mock()
   mock.encode_jwt = Mock()
 
   return mock
@@ -55,6 +57,7 @@ def auth_account_payload():
 @pytest.fixture()
 def token():
   return TokenBase(
-    access_token="fake_token",
+    access_token="fake_access_token",
+    refresh_token="fake_refresh_token",
     token_type="bearer"
   )
