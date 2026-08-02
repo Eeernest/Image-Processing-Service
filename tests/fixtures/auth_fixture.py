@@ -14,7 +14,7 @@ def mock_auth_security():
   mock = AsyncMock()
   mock.create_access_token = Mock()
   mock.create_refresh_token = Mock()
-  mock.encode_jwt = Mock()
+  mock.decode_jwt = Mock()
 
   return mock
 
@@ -37,6 +37,15 @@ def auth_account_obj():
     email="user1@example.com",
     hashed_password="Hashedpassword123"
   )
+
+@pytest.fixture()
+def mock_refresh_token_data():
+  return {
+      "sub": "1",
+      "exp": 1,
+      "jti": "jti",
+      "refresh": True
+  }
 
 @pytest.fixture()
 def mock_auth_service():
