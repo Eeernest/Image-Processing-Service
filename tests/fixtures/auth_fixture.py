@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, Mock
 from httpx import AsyncClient, ASGITransport
 import pytest
 
+from app.core.security import Security
 from app.dependencies.auth_dependency import get_auth_service
 from app.main import app
 from app.models.account_model import Account
@@ -68,7 +69,7 @@ def auth_account_payload():
   }
 
 @pytest.fixture()
-def token():
+def mock_tokens():
   return TokenBase(
     access_token="fake_access_token",
     refresh_token="fake_refresh_token",
