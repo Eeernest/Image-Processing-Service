@@ -11,3 +11,6 @@ class TokenRead(TokenBase):
 class TokenData(BaseModel):
   account_id: int
   user_role: str
+
+class RefreshTokenRequest(BaseModel):
+  refresh_token: str
