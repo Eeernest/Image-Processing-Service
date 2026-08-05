@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-import uuid
 
 from fastapi.concurrency import run_in_threadpool
 from fastapi.security import OAuth2PasswordBearer
