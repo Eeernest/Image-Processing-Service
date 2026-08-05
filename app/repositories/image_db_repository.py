@@ -32,6 +32,11 @@ class ImageDbRepository:
 
     return result.scalar_one_or_none()
 
+  async def get_by_account_id(self, account_id: int) -> Image | None:
+    result = await self.session.execute(select(Image).where(Image.account_id == account_id))
+
+    return result.scalar_one_or_none()
+
   async def get_all_by_account_id(self, account_id: int, offset: int, limit: int, file_format: ImageFormat | None = None) -> list[Image]:
     if file_format is None:
       result = await self.session.execute(select(Image).where(Image.account_id == account_id).offset(offset).limit(limit))
