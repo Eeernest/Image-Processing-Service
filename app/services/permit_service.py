@@ -14,7 +14,7 @@ class PermitService:
 
   async def get_current_user(self, token: str) -> Account:
     try:
-      payload = self.security.decode_jwt(token, settings.SECRET_KEY, settings.ALGORITHM)
+      payload = self.security.decode_jwt(token)
 
       account_id = payload.get("sub")
       user_role = payload.get("role")
