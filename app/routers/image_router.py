@@ -1,4 +1,6 @@
-from fastapi import APIRouter, UploadFile
+from typing import Annotated
+
+from fastapi import APIRouter, UploadFile, Query
 
 from app.dependencies.permit_dependency import CurrentUserDep
 from app.dependencies.image_dependency import ImageServiceDep
@@ -23,7 +25,11 @@ async def change_image_format(user: CurrentUserDep, service: ImageServiceDep, im
   return await service.change_image_format(user.id, image_id, format)
 
 @router.get("/generate_image_url/{image_id}", response_model=ImageUrlRead)
-async def generate_image_url(user:CurrentUserDep, service: ImageServiceDep, image_id: int):
+async def generate_image_url(user: CurrentUserDep, service: ImageServiceDep, image_id: int):
   image_url = await service.generate_image_url(user.id, image_id)
 
   return ImageUrlRead(image_url=image_url)
+
+@router.get("/view_uploaded_images", response_model=list[ImageRead])
+async def view_uploaded_images(user: CurrentUserDep, service: ImageServiceDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100, file_format: ImageFormat | None = None):
+  return await service.view_uploaded_images(user.id, offset, limit, file_format)
