@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.image_model import Image
+from app.schemas.image_schema import ImageFormat
 
 class ImageDbRepository:
   def __init__(self, session: AsyncSession):
@@ -30,3 +31,13 @@ class ImageDbRepository:
     result = await self.session.execute(select(Image).where(Image.id == id))
 
     return result.scalar_one_or_none()
+
+  async def get_all_by_account_id(self, account_id: int, offset: int, limit: int, file_format: ImageFormat | None = None) -> list[Image]:
+    if file_format is None:
+      result = await self.session.execute(select(Image).where(Image.account_id == account_id).offset(offset).limit(limit))
+
+      return result.scalars().all()
+
+    result = await self.session.execute(select(Image).where(Image.account_id == account_id, Image.file_format == file_format).offset(offset).limit(limit))
+
+    return result.scalars().all()
