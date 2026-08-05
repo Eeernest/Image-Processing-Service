@@ -96,3 +96,14 @@ async def test_generate_image_url_success(integration_image_client, uploaded_ima
   result = await integration_image_client.get(f"/generate_image_url/{image_data["id"]}")
 
   assert result.status_code == 200
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_view_uplaoded_images_success(integration_image_client, uploaded_image):
+  image_data = uploaded_image.json()
+
+  result = await integration_image_client.get("/view_uploaded_images", params={"offset": 0, "length": 10})
+  data = result.json()
+
+  assert result.status_code == 200
+  assert data[0]["id"] == image_data["id"]
