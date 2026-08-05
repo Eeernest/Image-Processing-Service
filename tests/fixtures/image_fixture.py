@@ -12,6 +12,7 @@ from app.main import app
 from app.models.image_model import Image
 from app.repositories.image_db_repository import ImageDbRepository
 from app.repositories.image_s3_repository import ImageS3Repository
+from app.schemas.image_schema import ImageFormat
 from app.services.image_service import ImageService
 
 @pytest.fixture()
@@ -110,6 +111,15 @@ def mock_invalid_file():
 @pytest.fixture()
 def mock_image_url():
   return "mock_image_url"
+
+@pytest.fixture()
+def mock_image_obj_list(image_obj) -> list:
+  second_image_obj = image_obj
+  second_image_obj.file_format = ImageFormat.WEBP
+
+  image_obj_list = [image_obj, second_image_obj]
+
+  return image_obj_list
 
 @pytest.fixture()
 def integration_image_service(image_db_repo, image_s3_repo):
