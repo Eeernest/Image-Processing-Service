@@ -30,7 +30,36 @@ async def test_get_by_email_success(account_db_repo, saved_account_obj):
 
 @pytest.mark.anyio
 @pytest.mark.integration
-async def test_get_by_id(account_db_repo, saved_account_obj):
+async def test_get_by_id_success(account_db_repo, saved_account_obj):
   result = await account_db_repo.get_by_id(saved_account_obj.id)
 
   assert result == saved_account_obj
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_get_all_accounts_success(account_db_repo, saved_account_obj):
+  result = await account_db_repo.get_all_accounts()
+
+  assert len(result) == 1
+  assert saved_account_obj in result
+
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_get_all_accounts_is_active_filter_success(account_db_repo, saved_account_obj):
+  saved_account_obj.is_active = True
+
+  result = await account_db_repo.get_all_accounts(True)
+
+  assert len(result) == 1
+  assert saved_account_obj in result
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_get_all_accounts_is_deleted_filter_success(account_db_repo, saved_account_obj):
+  saved_account_obj.is_deleted = True
+
+  result = await account_db_repo.get_all_accounts(None, True)
+
+  assert len(result) == 1
+  assert saved_account_obj in result
