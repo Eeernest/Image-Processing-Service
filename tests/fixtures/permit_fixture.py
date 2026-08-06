@@ -44,6 +44,25 @@ def access_token_data(permit_account_obj):
   }
 
 @pytest.fixture()
+def permit_admin_obj():
+  return Account(
+    id=1,
+    username="user1",
+    email="user1@example.com",
+    hashed_password="Hased_password",
+    user_role=AccountRole.admin,
+    is_active=True,
+    is_deleted=False
+  )
+
+@pytest.fixture()
+def admin_access_token_data(permit_admin_obj):
+  return {
+    "sub": str(permit_admin_obj.id),
+    "role": permit_admin_obj.user_role 
+  }
+
+@pytest.fixture()
 def mock_permit_service():
   return AsyncMock()
 
