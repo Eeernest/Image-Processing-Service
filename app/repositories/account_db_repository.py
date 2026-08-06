@@ -34,3 +34,16 @@ class AccountDbRepository:
     result = await self.session.execute(select(Account).where(Account.id == id))
 
     return result.scalar_one_or_none()
+
+  async def get_all_accounts(self, is_active: bool | None = None, is_deleted: bool | None = None) -> list[Account]:
+    statement = select(Account)
+
+    if is_active is not None:
+      statement = statement.where(Account.is_active == is_active)
+
+    if is_deleted is not None:
+      statement = statement.where(Account.is_deleted == is_deleted)
+
+    result = await self.session.execute(statement)
+
+    return result.scalars().all()
