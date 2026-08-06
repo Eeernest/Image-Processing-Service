@@ -1,41 +1,55 @@
-from jwt.exceptions import InvalidTokenError
+import jwt
 
-from app.core.config import settings
-from app.core.exceptions import InvalidTokenException, InactiveAccountException, DeletedAccountException
+import app.core.exceptions as e
 from app.core.security import Security
 from app.models.account_model import Account
 from app.repositories.account_db_repository import AccountDbRepository
-from app.schemas.token_schema import TokenData
 
 class PermitService:
   def __init__(self, security: Security, db_repo: AccountDbRepository):
     self.security = security
     self.db_repo = db_repo
 
-  async def get_current_user(self, token: str) -> Account:
-    try:
-      payload = self.security.decode_jwt(token)
+  async def get_current_user(self, encoded_access_token: str) -> Account:
+    access_token_data = self._try_decode_jwt(encoded_access_token)
 
-      account_id = payload.get("sub")
-      user_role = payload.get("role")
+    self._check_token_data(access_token_data)
 
-      if account_id is None:
-        raise InvalidTokenException
-      
-      token_data = TokenData(account_id=int(account_id), user_role=user_role)
+    return await self._try_get_account_by_id(int(access_token_data["sub"]))
 
-    except InvalidTokenError:
-      raise InvalidTokenException
-    
-    account_obj = await self.db_repo.get_by_id(token_data.account_id)
+
+
+  async def _try_get_account_by_id(self, id: int) -> Account:
+    account_obj = await self.db_repo.get_by_id(id)
 
     if account_obj is None:
-      raise InvalidTokenException
-    
+      raise e.InvalidTokenException()
+
     if account_obj.is_active == False:
-      raise InactiveAccountException
-    
+      raise e.InactiveAccountException()
+
     if account_obj.is_deleted == True:
-      raise DeletedAccountException
-    
+      raise e.DeletedAccountException()
+
     return account_obj
+
+
+
+  def _check_token_data(self, access_token_data: dict) -> None:
+    if access_token_data["sub"] is None:
+      raise e.InvalidTokenException()
+
+    if access_token_data["role"] is None:
+      raise e.InvalidTokenException()
+
+  
+
+  def _try_decode_jwt(self, encoded_access_token: str) -> dict:
+    try:
+      return self.security.decode_jwt(encoded_access_token)
+
+    except jwt.ExpiredSignatureError:
+      raise e.TokenExpiredException()
+
+    except jwt.PyJWTError:
+      raise e.InvalidTokenException()
