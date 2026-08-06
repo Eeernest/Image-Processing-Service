@@ -2,7 +2,7 @@ import jwt
 
 import app.core.exceptions as e
 from app.core.security import Security
-from app.models.account_model import Account
+from app.models.account_model import Account, AccountRole
 from app.repositories.account_db_repository import AccountDbRepository
 
 class PermitService:
@@ -14,6 +14,15 @@ class PermitService:
     access_token_data = self._try_decode_jwt(encoded_access_token)
 
     self._check_token_data(access_token_data)
+
+    return await self._try_get_account_by_id(int(access_token_data["sub"]))
+
+  async def get_current_admin(self, encoded_access_token: str) -> Account:
+    access_token_data = self._try_decode_jwt(encoded_access_token)
+
+    self._check_token_data(access_token_data)
+
+    self._check_admin_role(access_token_data)
 
     return await self._try_get_account_by_id(int(access_token_data["sub"]))
 
@@ -40,6 +49,10 @@ class PermitService:
       raise e.InvalidTokenException()
 
     if access_token_data["role"] is None:
+      raise e.InvalidTokenException()
+
+  def _check_admin_role(self, access_token_data: dict) -> None:
+    if access_token_data["role"] != AccountRole.admin:
       raise e.InvalidTokenException()
 
   
