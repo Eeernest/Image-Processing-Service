@@ -37,7 +37,7 @@ def permit_account_obj():
   )
 
 @pytest.fixture()
-def permit_payload(permit_account_obj):
+def access_token_data(permit_account_obj):
   return {
     "sub": str(permit_account_obj.id),
     "role": permit_account_obj.user_role 

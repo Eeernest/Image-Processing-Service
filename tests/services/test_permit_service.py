@@ -1,78 +1,98 @@
-from jwt.exceptions import InvalidTokenError
+import jwt
 import pytest
 
-from app.core.exceptions import InvalidTokenException, InactiveAccountException, DeletedAccountException
+import app.core.exceptions as e
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_get_current_user_success(mock_permit_security, mock_permit_db_repo, permit_service, permit_account_obj, permit_payload):
-  mock_permit_security.decode_jwt.return_value = permit_payload
+async def test_get_current_user_success(mock_permit_security, mock_permit_db_repo, permit_service, permit_account_obj, access_token_data):
+  mock_permit_security.decode_jwt.return_value = access_token_data
   mock_permit_db_repo.get_by_id.return_value = permit_account_obj
 
-  result = await permit_service.get_current_user("valid_token")
+  result = await permit_service.get_current_user("valid_access_token")
 
-  assert result.username == permit_account_obj.username
-
-@pytest.mark.anyio
-@pytest.mark.unit
-async def test_get_current_user_invalid_token_error(mock_permit_security, permit_service):
-  mock_permit_security.decode_jwt.side_effect = InvalidTokenError
-
-  with pytest.raises(InvalidTokenException) as exc:
-    await permit_service.get_current_user("exc_token")
-
-  assert exc.value.status_code == 401
-  assert exc.value.detail == InvalidTokenException.detail
+  assert result == permit_account_obj
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_get_current_user_no_account_id_failure(mock_permit_security, permit_service, permit_payload):
-  permit_payload["sub"] = None
+async def test_get_current_user_token_expired_exception(mock_permit_security, permit_service):
+  mock_permit_security.decode_jwt.side_effect = jwt.ExpiredSignatureError()
 
-  mock_permit_security.decode_jwt.return_value = permit_payload
+  with pytest.raises(e.TokenExpiredException) as exc:
+    await permit_service.get_current_user("expired_access_token")
 
-  with pytest.raises(InvalidTokenException) as exc:
-    await permit_service.get_current_user("exc_token")
-
-  assert exc.value.status_code == 401
-  assert exc.value.detail == InvalidTokenException.detail
+  assert exc.value.status_code == e.TokenExpiredException.status_code
+  assert exc.value.detail == e.TokenExpiredException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_get_current_user_no_account_failure(mock_permit_security, mock_permit_db_repo, permit_service, permit_payload):
-  mock_permit_security.decode_jwt.return_value = permit_payload
+async def test_get_current_user_py_jwt_error(mock_permit_security, permit_service):
+  mock_permit_security.decode_jwt.side_effect = jwt.PyJWTError()
+
+  with pytest.raises(e.InvalidTokenException) as exc:
+    await permit_service.get_current_user("invalid_access_token")
+
+  assert exc.value.status_code == e.InvalidTokenException.status_code
+  assert exc.value.detail == e.InvalidTokenException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_get_current_user_sub_is_none_failure(mock_permit_security, permit_service, permit_account_obj):
+  mock_permit_security.decode_jwt.return_value = {"sub": None, "role": permit_account_obj.user_role}
+
+  with pytest.raises(e.InvalidTokenException) as exc:
+      await permit_service.get_current_user("invalid_access_token")
+  
+  assert exc.value.status_code == e.InvalidTokenException.status_code
+  assert exc.value.detail == e.InvalidTokenException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_get_current_user_role_is_none_failure(mock_permit_security, permit_service, permit_account_obj):
+  mock_permit_security.decode_jwt.return_value = {"sub": permit_account_obj.id, "role": None}
+  
+  with pytest.raises(e.InvalidTokenException) as exc:
+      await permit_service.get_current_user("invalid_access_token")
+  
+  assert exc.value.status_code == e.InvalidTokenException.status_code
+  assert exc.value.detail == e.InvalidTokenException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_get_current_user_account_is_none_failure(mock_permit_security, mock_permit_db_repo, permit_service, access_token_data):
+  mock_permit_security.decode_jwt.return_value = access_token_data
   mock_permit_db_repo.get_by_id.return_value = None
 
-  with pytest.raises(InvalidTokenException) as exc:
-    await permit_service.get_current_user("exc_token")
-
-  assert exc.value.status_code == 401
-  assert exc.value.detail == InvalidTokenException.detail
+  with pytest.raises(e.InvalidTokenException) as exc:
+    await permit_service.get_current_user("invalid_access_token")
+  
+  assert exc.value.status_code == e.InvalidTokenException.status_code
+  assert exc.value.detail == e.InvalidTokenException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_get_current_user_inactive_account_exception(mock_permit_security, mock_permit_db_repo, permit_service, permit_account_obj, permit_payload):
+async def test_get_current_user_account_is_inactive_failure(mock_permit_security, mock_permit_db_repo, permit_service, permit_account_obj, access_token_data):
   permit_account_obj.is_active = False
 
-  mock_permit_security.decode_jwt.return_value = permit_payload
+  mock_permit_security.decode_jwt.return_value = access_token_data
   mock_permit_db_repo.get_by_id.return_value = permit_account_obj
 
-  with pytest.raises(InactiveAccountException) as exc:
-    await permit_service.get_current_user("exc_token")
-
-  assert exc.value.status_code == 400
-  assert exc.value.detail == InactiveAccountException.detail
+  with pytest.raises(e.InactiveAccountException) as exc:
+    await permit_service.get_current_user("invalid_access_token")
+  
+  assert exc.value.status_code == e.InactiveAccountException.status_code
+  assert exc.value.detail == e.InactiveAccountException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_get_current_user_deleted_account_exception(mock_permit_security, mock_permit_db_repo, permit_service, permit_account_obj, permit_payload):
+async def test_get_current_user_account_is_inactive_failure(mock_permit_security, mock_permit_db_repo, permit_service, permit_account_obj, access_token_data):
   permit_account_obj.is_deleted = True
 
-  mock_permit_security.decode_jwt.return_value = permit_payload
+  mock_permit_security.decode_jwt.return_value = access_token_data
   mock_permit_db_repo.get_by_id.return_value = permit_account_obj
 
-  with pytest.raises(DeletedAccountException) as exc:
-    await permit_service.get_current_user("exc_token")
-
-  assert exc.value.status_code == 400
-  assert exc.value.detail == DeletedAccountException.detail
+  with pytest.raises(e.DeletedAccountException) as exc:
+    await permit_service.get_current_user("invalid_access_token")
+  
+  assert exc.value.status_code == e.DeletedAccountException.status_code
+  assert exc.value.detail == e.DeletedAccountException.detail
