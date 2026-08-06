@@ -17,7 +17,12 @@ def get_permit_service(session: SessionDep):
 PermitServiceDep = Annotated[PermitService, Depends(get_permit_service)]
 TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
-async def get_current_user(service: PermitServiceDep, token: TokenDep) -> Account:
-  return await service.get_current_user(token)
+async def get_current_user(service: PermitServiceDep, encoded_access_token: TokenDep) -> Account:
+  return await service.get_current_user(encoded_access_token)
 
 CurrentUserDep = Annotated[Account, Depends(get_current_user)]
+
+async def get_current_admin(service: PermitServiceDep, encoded_access_token: TokenDep) -> Account:
+  return await service.get_current_admin(encoded_access_token)
+
+CurrentAdminDep = Annotated[Account, Depends(get_current_admin)]
