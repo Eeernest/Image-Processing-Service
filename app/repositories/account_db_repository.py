@@ -35,8 +35,8 @@ class AccountDbRepository:
 
     return result.scalar_one_or_none()
 
-  async def get_all_accounts(self, is_active: bool | None = None, is_deleted: bool | None = None) -> list[Account]:
-    statement = select(Account)
+  async def get_all_accounts(self, offset: int, limit: int, is_active: bool | None = None, is_deleted: bool | None = None) -> list[Account]:
+    statement = select(Account).offset(offset).limit(limit)
 
     if is_active is not None:
       statement = statement.where(Account.is_active == is_active)
