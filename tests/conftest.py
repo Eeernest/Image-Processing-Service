@@ -30,6 +30,7 @@ pytest_plugins = [
   "tests.fixtures.token_fixture",
   "tests.fixtures.auth_fixture",
   "tests.fixtures.permit_fixture",
+  "tests.fixtures.admin_fixture",
   "tests.fixtures.image_fixture",
 ]
 
