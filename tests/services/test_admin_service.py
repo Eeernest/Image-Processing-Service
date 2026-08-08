@@ -47,17 +47,13 @@ async def test_view_all_accounts_user_not_found_exception(mock_admin_db_repo, ad
 @pytest.mark.anyio
 @pytest.mark.unit
 async def test_delete_account_success(mock_admin_db_repo, admin_service, mock_admin_account_list):
-  account_obj = mock_admin_account_list[0]
+  mock_admin_db_repo.get_by_id.return_value = mock_admin_account_list[0]
 
-  mock_admin_db_repo.get_by_id.return_value = account_obj
+  mock_admin_db_repo.save.return_value = mock_admin_account_list[0]
 
-  account_obj.is_deleted = False
+  result = await admin_service.delete_account(mock_admin_account_list[0].id)
 
-  mock_admin_db_repo.save.return_value = account_obj
-
-  result = await admin_service.delete_account(1)
-
-  assert result == account_obj
+  assert result.is_deleted == True
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -80,3 +76,60 @@ async def test_delete_account_already_deleted_exception(mock_admin_db_repo, admi
 
   assert exc.value.status_code == e.AlreadyDeletedException.status_code
   assert exc.value.detail == e.AlreadyDeletedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_delete_account_failed_to_save_exception(mock_admin_account_list, mock_admin_db_repo, admin_service):
+  mock_admin_db_repo.get_by_id.return_value = mock_admin_account_list[0]
+  mock_admin_db_repo.save.side_effect = e.FailedToSaveException()
+
+  with pytest.raises(e.FailedToSaveException) as exc:
+    await admin_service.delete_account(mock_admin_account_list[0].id)
+
+  assert exc.value.status_code == e.FailedToSaveException.status_code
+  assert exc.value.detail == e.FailedToSaveException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_account_role_success(mock_admin_db_repo, admin_service, mock_admin_account_list):
+  mock_admin_db_repo.get_by_id.return_value = mock_admin_account_list[0]
+
+  mock_admin_db_repo.save.return_value = mock_admin_account_list[0]
+
+  result = await admin_service.change_account_role(mock_admin_account_list[0].id, AccountRole.admin)
+
+  assert result.user_role == AccountRole.admin
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_account_role_user_not_found_exception(mock_admin_db_repo, admin_service):
+  mock_admin_db_repo.get_by_id.return_value = None
+
+  with pytest.raises(e.UserNotFoundException) as exc:
+    await admin_service.change_account_role(1, AccountRole.admin)
+
+  assert exc.value.status_code == e.UserNotFoundException.status_code
+  assert exc.value.detail == e.UserNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_account_role_already_changed_exception(mock_admin_account_list, mock_admin_db_repo, admin_service):
+  mock_admin_db_repo.get_by_id.return_value = mock_admin_account_list[0]
+
+  with pytest.raises(e.RoleAlreadyChangedException) as exc:
+    await admin_service.change_account_role(mock_admin_account_list[0].id, AccountRole.user)
+
+  assert exc.value.status_code == e.RoleAlreadyChangedException.status_code
+  assert exc.value.detail == e.RoleAlreadyChangedException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_account_role_failed_to_save_exception(mock_admin_account_list, mock_admin_db_repo, admin_service):
+  mock_admin_db_repo.get_by_id.return_value = mock_admin_account_list[0]
+  mock_admin_db_repo.save.side_effect = e.FailedToSaveException()
+
+  with pytest.raises(e.FailedToSaveException) as exc:
+    await admin_service.change_account_role(mock_admin_account_list[0].id, AccountRole.admin)
+
+  assert exc.value.status_code == e.FailedToSaveException.status_code
+  assert exc.value.detail == e.FailedToSaveException.detail
