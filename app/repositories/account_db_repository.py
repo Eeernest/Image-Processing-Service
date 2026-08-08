@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,3 +47,8 @@ class AccountDbRepository:
     result = await self.session.execute(statement)
 
     return result.scalars().all()
+
+  async def delete(self, id: int) -> None:
+    statement = delete(Account).where(Account.id == id)
+    await self.session.execute(statement)
+    await self.session.commit()
