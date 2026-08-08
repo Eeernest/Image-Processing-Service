@@ -1,6 +1,7 @@
 import pytest
 
 import app.core.exceptions as e
+from app.models.account_model import AccountRole
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -34,3 +35,14 @@ async def test_delete_account_success(mock_admin_account_list, mock_admin_servic
   result = await unit_admin_client.patch("/delete_account", params={"id": mock_admin_account_list[0].id})
 
   assert result.status_code == 200
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_change_acocunt_role_success(mock_admin_account_list, mock_admin_service, unit_admin_client):
+  mock_admin_service.change_account_role.return_value = mock_admin_account_list[0]
+
+  result = await unit_admin_client.patch("/change_account_role", params={"id": mock_admin_account_list[0].id, "user_role": AccountRole.user.value})
+  data = result.json()
+
+  assert result.status_code == 200
+  assert data["user_role"] == AccountRole.user
