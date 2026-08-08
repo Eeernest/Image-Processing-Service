@@ -63,3 +63,10 @@ async def test_get_all_accounts_is_deleted_filter_success(account_db_repo, saved
 
   assert len(result) == 1
   assert saved_account_obj in result
+
+@pytest.mark.anyio
+@pytest.mark.integration
+async def test_delete_success(account_db_repo, saved_account_obj):
+  result = await account_db_repo.delete(saved_account_obj.id)
+
+  assert result is None
