@@ -18,3 +18,7 @@ async def view_all_accounts(
   is_deleted: bool | None = None
 ):
   return await service.view_all_accounts(offset, limit, is_active, is_deleted)
+
+@router.patch("/delete_account", response_model=AdminRead)
+async def delete_account(admin: CurrentAdminDep, service: AdminServiceDep, id: int):
+  return await service.delete_account(id)
