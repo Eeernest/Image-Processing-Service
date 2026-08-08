@@ -22,6 +22,14 @@ class EmailUnavailableException(AppBaseException):
   status_code = 409
   detail = "Email is already in use"
 
+class AlreadyDeletedException(AppBaseException):
+  status_code = 400
+  detail = "Account is already deleted"
+
+class FailedToSaveException(AppBaseException):
+  status_code = 409
+  detail = "Failed to save object to database"
+
 class InvalidCredentialsException(AppBaseException):
   status_code = 401
   detail = "Incorrect username or password"

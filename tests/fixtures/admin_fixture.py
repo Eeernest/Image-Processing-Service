@@ -45,7 +45,7 @@ def mock_admin_account_list() -> list:
       hashed_password="Hased_password",
       user_role=AccountRole.user,
       is_active=True,
-      is_deleted=False
+      is_deleted=True
     ),
   ]
 
