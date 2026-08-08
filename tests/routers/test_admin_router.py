@@ -23,3 +23,14 @@ async def test_view_all_accounts_user_not_fount_exception(mock_admin_service, un
 
   assert result.status_code == 404
   assert data["detail"] == e.UserNotFoundException.detail
+
+@pytest.mark.anyio
+@pytest.mark.unit
+async def test_delete_account_success(mock_admin_account_list, mock_admin_service, unit_admin_client):
+  mock_admin_account_list[0].is_deleted = True
+
+  mock_admin_service.delete_account.return_value = mock_admin_account_list[0]
+
+  result = await unit_admin_client.patch("/delete_account", params={"id": mock_admin_account_list[0].id})
+
+  assert result.status_code == 200
