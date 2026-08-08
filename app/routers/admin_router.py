@@ -4,6 +4,7 @@ from fastapi import APIRouter, Query
 
 from app.dependencies.admin_dependency import AdminServiceDep
 from app.dependencies.permit_dependency import CurrentAdminDep
+from app.models.account_model import AccountRole
 from app.schemas.admin_schema import AdminRead
 
 router = APIRouter()
@@ -22,3 +23,7 @@ async def view_all_accounts(
 @router.patch("/delete_account", response_model=AdminRead)
 async def delete_account(admin: CurrentAdminDep, service: AdminServiceDep, id: int):
   return await service.delete_account(id)
+
+@router.patch("/change_account_role", response_model=AdminRead)
+async def change_account_role(admin: CurrentAdminDep, service: AdminServiceDep, id: int, user_role: AccountRole):
+  return await service.change_account_role(id, user_role)
