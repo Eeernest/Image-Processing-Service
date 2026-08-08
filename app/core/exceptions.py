@@ -26,6 +26,10 @@ class AlreadyDeletedException(AppBaseException):
   status_code = 400
   detail = "Account is already deleted"
 
+class RoleAlreadyChangedException(AppBaseException):
+  status_code = 409
+  detail = "Role is already changed"
+
 class FailedToSaveException(AppBaseException):
   status_code = 409
   detail = "Failed to save object to database"
