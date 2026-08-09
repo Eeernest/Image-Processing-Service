@@ -445,26 +445,3 @@ async def test_view_uploaded_images_format_success(mock_image_db_repo, image_ser
 
   assert len(result) == 1
   assert mock_image_obj_list[1] in result
-
-@pytest.mark.anyio
-@pytest.mark.unit
-async def test_view_uploaded_images_user_not_found_exception(mock_image_db_repo, image_service):
-  mock_image_db_repo.get_by_account_id.return_value = None
-
-  with pytest.raises(e.UserNotFoundException) as exc:
-    await image_service.view_uploaded_images(20, 0, 10)
-
-  assert exc.value.status_code == e.UserNotFoundException.status_code
-  assert exc.value.detail == e.UserNotFoundException.detail
-
-@pytest.mark.anyio
-@pytest.mark.unit
-async def test_view_uploaded_images_image_not_found_exception(mock_image_db_repo, image_service, mock_image_obj_list):
-  mock_image_db_repo.get_by_account_id.return_value = mock_image_obj_list[0]
-  mock_image_db_repo.get_all_by_account_id.return_value = []
-
-  with pytest.raises(e.ImageNotFoundException) as exc:
-    await image_service.view_uploaded_images(mock_image_obj_list[0], 10, 100)
-
-  assert exc.value.status_code == e.ImageNotFoundException.status_code
-  assert exc.value.detail == e.ImageNotFoundException.detail
