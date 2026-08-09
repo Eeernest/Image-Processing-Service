@@ -22,20 +22,10 @@ class ImageDbRepository:
 
       raise exc
 
-  async def delete(self, id: int) -> None:
-    statement = delete(Image).where(Image.id == id)
-    await self.session.execute(statement)
-    await self.session.commit()
-
   async def get_by_id(self, id: int) -> Image | None:
     result = await self.session.execute(select(Image).where(Image.id == id))
 
     return result.scalar_one_or_none()
-
-  async def get_by_account_id(self, account_id: int) -> Image | None:
-    result = await self.session.execute(select(Image).where(Image.account_id == account_id))
-
-    return result.scalar()
 
   async def get_all_by_account_id(self, account_id: int, offset: int, limit: int, file_format: ImageFormat | None = None) -> list[Image]:
     statement = select(Image).where(Image.account_id == account_id).offset(offset).limit(limit)
