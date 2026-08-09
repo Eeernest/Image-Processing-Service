@@ -102,9 +102,7 @@ class ImageService:
     return self._try_generate_url(image_obj.s3_key)
 
   async def view_uploaded_images(self, account_id: int, offset: int, limit: int, file_format: ImageFormat | None = None) -> list[Image]:
-    image_obj = await self._try_get_image_obj_by_account_id(account_id)
-
-    return await self._try_get_all_image_obj_by_account_id(image_obj.account_id, offset, limit, file_format)
+    return await self.db_repo.get_all_by_account_id(account_id, offset, limit, file_format)
 
 
 
@@ -147,23 +145,7 @@ class ImageService:
       raise e.ImageNotFoundException()
 
     return image_obj
-
-  async def _try_get_image_obj_by_account_id(self, account_id: int) -> Image:
-    image_obj = await self.db_repo.get_by_account_id(account_id)
-
-    if image_obj is None:
-      raise e.UserNotFoundException()
-
-    return image_obj
-
-  async def _try_get_all_image_obj_by_account_id(self, account_id: int, offset: int, limit: int, file_format: ImageFormat | None = None) -> list[Image]:
-    image_obj_list = await self.db_repo.get_all_by_account_id(account_id, offset, limit, file_format)
-
-    if len(image_obj_list) == 0:
-      raise e.ImageNotFoundException()
-
-    return image_obj_list
-
+  
 
 
   def _check_account_id(self, image_obj_account_id: int, account_id: int) -> None:
