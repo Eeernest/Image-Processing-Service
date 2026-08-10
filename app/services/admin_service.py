@@ -9,7 +9,7 @@ class AdminService:
     self.db_repo = db_repo
 
   async def view_all_accounts(self, offset: int, limit: int, is_active: bool | None = None, is_deleted: bool | None = None) -> list[Account]:
-    return await self._try_get_all_accounts(offset, limit, is_active, is_deleted)
+    return await self.db_repo.get_all_accounts(offset, limit, is_active, is_deleted)
 
   async def delete_account(self, id: int) -> Account:
     account_obj = await self._try_get_account_by_id(id)
@@ -26,14 +26,6 @@ class AdminService:
     return await self._try_save_account(change_account_obj)
 
 
-
-  async def _try_get_all_accounts(self, offset: int, limit: int, is_active: bool | None = None, is_deleted: bool | None = None) -> list[Account]:
-    account_obj_list = await self.db_repo.get_all_accounts(offset, limit, is_active, is_deleted)
-
-    if len(account_obj_list) == 0:
-      raise e.UserNotFoundException()
-
-    return account_obj_list
 
   async def _try_get_account_by_id(self, id: int) -> Account:
     account_obj = await self.db_repo.get_by_id(id)
