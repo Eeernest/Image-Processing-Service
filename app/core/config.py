@@ -9,7 +9,7 @@ class Config(BaseSettings):
 
   MAX_IMAGE_HEIGHT: int = 5000
 
-  ALLOWED_IMAGE_FOMRAT: list = ["PNG", "JPEG", "WEBP"]
+  ALLOWED_IMAGE_FORMAT: list = ["PNG", "JPEG", "WEBP"]
 
   ADMIN_USERNAME: str = "admin_username"
 

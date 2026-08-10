@@ -174,7 +174,7 @@ class ImageService:
   def _validate_image(self, file: BinaryIO) -> str:
     try:
       with PILImage.open(file) as img:
-        allowed_image_formats = settings.ALLOWED_IMAGE_FOMRAT
+        allowed_image_formats = settings.ALLOWED_IMAGE_FORMAT
         
         width, height = img.size
 
