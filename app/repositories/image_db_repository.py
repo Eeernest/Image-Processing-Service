@@ -22,8 +22,8 @@ class ImageDbRepository:
 
       raise exc
 
-  async def get_by_id(self, id: int) -> Image | None:
-    result = await self.session.execute(select(Image).where(Image.id == id))
+  async def get_by_id(self, image_id: int, account_id: int) -> Image | None:
+    result = await self.session.execute(select(Image).where(Image.id == image_id, Image.account_id == account_id))
 
     return result.scalar_one_or_none()
 
