@@ -13,7 +13,7 @@ async def test_save(image_db_repo, image_obj, saved_account_obj):
 @pytest.mark.anyio
 @pytest.mark.integration
 async def test_get_by_id(image_db_repo, saved_image_obj):
-  result = await image_db_repo.get_by_id(saved_image_obj.id)
+  result = await image_db_repo.get_by_id(saved_image_obj.id, saved_image_obj.account_id)
 
   assert result == saved_image_obj
 
