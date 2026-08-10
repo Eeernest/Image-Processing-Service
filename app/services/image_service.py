@@ -37,9 +37,7 @@ class ImageService:
     return await self._try_save_image_obj(image_obj)
 
   async def resize_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
-    image_obj = await self._try_get_image_obj_by_id(image_id)
-
-    self._check_account_id(image_obj.account_id, account_id)
+    image_obj = await self._try_get_image_obj_by_id(image_id, account_id)
 
     file = await self._try_download_from_s3(image_obj.s3_key)
 
@@ -56,9 +54,7 @@ class ImageService:
     return await self._try_save_image_obj(resized_image_obj)
 
   async def crop_center_image(self, account_id: int, image_id: int, width: int, height: int) -> Image:
-    image_obj = await self._try_get_image_obj_by_id(image_id)
-
-    self._check_account_id(image_obj.account_id, account_id)
+    image_obj = await self._try_get_image_obj_by_id(image_id, account_id)
 
     file = await self._try_download_from_s3(image_obj.s3_key)
 
@@ -75,9 +71,7 @@ class ImageService:
     return await self._try_save_image_obj(cropped_image_obj)
 
   async def change_image_format(self, account_id: int, image_id: int, format: ImageFormat) -> Image:
-    image_obj = await self._try_get_image_obj_by_id(image_id)
-
-    self._check_account_id(image_obj.account_id, account_id)
+    image_obj = await self._try_get_image_obj_by_id(image_id, account_id)
 
     file = await self._try_download_from_s3(image_obj.s3_key)
 
@@ -95,9 +89,7 @@ class ImageService:
     return await self._try_save_image_obj(converted_image_obj)
 
   async def generate_image_url(self, account_id: int, image_id: int) -> str:
-    image_obj = await self._try_get_image_obj_by_id(image_id)
-
-    self._check_account_id(image_obj.account_id, account_id)
+    image_obj = await self._try_get_image_obj_by_id(image_id, account_id)
 
     return self._try_generate_url(image_obj.s3_key)
 
@@ -138,8 +130,8 @@ class ImageService:
 
       raise e.DuplicateImageException()
 
-  async def _try_get_image_obj_by_id(self, image_id: int) -> Image:
-    image_obj = await self.db_repo.get_by_id(image_id)
+  async def _try_get_image_obj_by_id(self, image_id: int, account_id: int) -> Image:
+    image_obj = await self.db_repo.get_by_id(image_id, account_id)
 
     if image_obj is None:
       raise e.ImageNotFoundException()
@@ -147,10 +139,6 @@ class ImageService:
     return image_obj
   
 
-
-  def _check_account_id(self, image_obj_account_id: int, account_id: int) -> None:
-    if image_obj_account_id != account_id:
-      raise e.UserNotFoundException()
 
   def _create_image_obj(self, account_id: int, filename: str, s3_key: str, file_size_bytes: int, file_format: str) -> Image:
     return Image(
