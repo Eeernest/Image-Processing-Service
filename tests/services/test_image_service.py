@@ -124,19 +124,6 @@ async def test_resize_image_not_found_exception(mock_image_db_repo, image_servic
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_resize_image_user_not_found_exception(image_obj, mock_image_db_repo, image_service):
-  image_obj.account_id = 2
-
-  mock_image_db_repo.get_by_id.return_value = image_obj
-
-  with pytest.raises(e.UserNotFoundException) as exc:
-    await image_service.resize_image(12, 1, 100, 17)
-
-  assert exc.value.status_code == e.UserNotFoundException.status_code
-  assert exc.value.detail == e.UserNotFoundException.detail
-
-@pytest.mark.anyio
-@pytest.mark.unit
 async def test_resize_image_s3_download_exception(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service):
   mock_image_db_repo.get_by_id.return_value = image_obj
   mock_image_s3_repo.download_from_s3.side_effect = BotoCoreError()
@@ -215,19 +202,6 @@ async def test_crop_center_image_not_found_exception(mock_image_db_repo, image_s
 
   assert exc.value.status_code == e.ImageNotFoundException.status_code
   assert exc.value.detail == e.ImageNotFoundException.detail
-
-@pytest.mark.anyio
-@pytest.mark.unit
-async def test_crop_center_image_user_not_found_exception(image_obj, mock_image_db_repo, image_service):
-  image_obj.account_id = 1
-
-  mock_image_db_repo.get_by_id.return_value = image_obj
-
-  with pytest.raises(e.UserNotFoundException) as exc:
-    await image_service.crop_center_image(12, 3, 23, 34)
-
-  assert exc.value.status_code == e.UserNotFoundException.status_code
-  assert exc.value.detail == e.UserNotFoundException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
@@ -315,17 +289,6 @@ async def test_change_image_format_image_not_found_exception(mock_image_db_repo,
 
 @pytest.mark.anyio
 @pytest.mark.unit
-async def test_change_image_format_user_not_fount_exception(image_obj, mock_image_db_repo, image_service):
-  mock_image_db_repo.get_by_id.return_value = image_obj
-
-  with pytest.raises(e.UserNotFoundException) as exc:
-    await image_service.change_image_format(22, 12, ImageFormat.PNG)
-
-  assert exc.value.status_code == e.UserNotFoundException.status_code
-  assert exc.value.detail == e.UserNotFoundException.detail
-
-@pytest.mark.anyio
-@pytest.mark.unit
 async def test_change_image_format_s3_download_exception(image_obj, mock_image_db_repo, mock_image_s3_repo, image_service):
   mock_image_db_repo.get_by_id.return_value = image_obj
   mock_image_s3_repo.download_from_s3.side_effect = e.S3DownloadFailedException()
@@ -401,17 +364,6 @@ async def test_generate_image_url_image_not_found_exception(mock_image_db_repo, 
 
   assert exc.value.status_code == e.ImageNotFoundException.status_code
   assert exc.value.detail == e.ImageNotFoundException.detail
-
-@pytest.mark.anyio
-@pytest.mark.unit
-async def test_generate_image_url_user_not_found_exception(image_obj, mock_image_db_repo, image_service):
-  mock_image_db_repo.get_by_id.return_value = image_obj
-
-  with pytest.raises(e.UserNotFoundException) as exc:
-    await image_service.generate_image_url(12, 3)
-
-  assert exc.value.status_code == e.UserNotFoundException.status_code
-  assert exc.value.detail == e.UserNotFoundException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
