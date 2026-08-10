@@ -1,6 +1,5 @@
 import os
 
-from botocore.exceptions import ClientError
 import pytest
 
 @pytest.mark.anyio
