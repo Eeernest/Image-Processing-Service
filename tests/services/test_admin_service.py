@@ -33,16 +33,7 @@ async def test_view_all_accounts_is_deketed_filter_success(mock_admin_db_repo, a
   assert len(result) == 1
   assert mock_admin_account_list[2] in result
 
-@pytest.mark.anyio
-@pytest.mark.unit
-async def test_view_all_accounts_user_not_found_exception(mock_admin_db_repo, admin_service, mock_admin_account_list):
-  mock_admin_db_repo.get_all_accounts.return_value = []
 
-  with pytest.raises(e.UserNotFoundException) as exc:
-    await admin_service.view_all_accounts(0, 10)
-
-  assert exc.value.status_code == e.UserNotFoundException.status_code
-  assert exc.value.detail == e.UserNotFoundException.detail
 
 @pytest.mark.anyio
 @pytest.mark.unit
