@@ -34,10 +34,10 @@ class PermitService:
     if account_obj is None:
       raise e.InvalidTokenException()
 
-    if account_obj.is_active == False:
+    if account_obj.is_active is False:
       raise e.InactiveAccountException()
 
-    if account_obj.is_deleted == True:
+    if account_obj.is_deleted is True:
       raise e.DeletedAccountException()
 
     return account_obj
