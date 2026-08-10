@@ -1,7 +1,6 @@
 from io import BytesIO
 from typing import BinaryIO
 
-from botocore.exceptions import ClientError, BotoCoreError
 from fastapi.concurrency import run_in_threadpool
 from types_boto3_s3 import S3Client
 
