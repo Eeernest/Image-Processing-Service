@@ -10,20 +10,33 @@ Image processing service REST API built with Python and FastAPI
 ### Login
 - User can login after creating account
 
+# Authorization
+- User gets JWT access token after login
+- If JWT access token expires, new one can be generated with JWT refresh token
+
+## Admin
+- User with admin role can delete, change roles and view list of all users
+
 ### Upload Image
-- Authentication is required
 - User can upload image
 - maximal resolution: 5000 x 5000 pixels
 - Maximal file size: 10MB
 - Allowed formats: JPEG, PNG, WEBP
 
 ### Resize Image
-- Authentication is required
 - User can resize image
 
 ### Crop Center Image
-- Authentication is required
 - User can crop from center image
+
+### Change Image Format
+- User can chenge image format to: JPEG, PNG, WEBP
+
+### Generate image url
+- User can generate presigned url for their image
+
+### view uploaded images
+- User can view list with data about their uploaded images
 
 ## Installation
 1. Clone the repository:
